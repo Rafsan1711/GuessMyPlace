@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  # Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: development
+    container_name: guessmyplace-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://backend:5000
+      - VITE_APP_NAME=GuessMyPlace
+      - NODE_ENV=development
+    depends_on:
+      - backend
+    networks:
+      - guessmyplace-network
+    command: npm run dev -- --host 0.0.0.0
+
+  # Backend Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    container_name: guessmyplace-backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+      - ./data:/app/data
+      - /app/venv
+    environment:
+      - FLASK_APP=run.py
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - PYTHONUNBUFFERED=1
+      - REDIS_URL=redis://redis:6379/0
+      - FIREBASE_DATABASE_URL=${FIREBASE_DATABASE_URL}
+      - FIREBASE_SERVICE_ACCOUNT_PATH=/app/secrets/firebase-service-account.json
+    depends_on:
+      - redis
+    networks:
+      - guessmyplace-network
+    command: python run.py
+
+  # Redis Cache Service
+  redis:
+    image: redis:7-alpine
+    container_name: guessmyplace-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - guessmyplace-network
+    command: redis-server --appendonly yes
+
+  # Optional: Redis Commander (for viewing cache)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: guessmyplace-redis-commander
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - guessmyplace-network
+    profiles:
+      - tools
+
+networks:
+  guessmyplace-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+    driver: local
