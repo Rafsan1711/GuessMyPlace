@@ -1,0 +1,178 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://guessmyplace.app/schemas/question.json",
+  "title": "Question",
+  "description": "Schema for a question in GuessMyPlace",
+  "type": "object",
+  "required": ["id", "text", "characteristic", "discriminating_power", "category"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier with format q_NNN",
+      "pattern": "^q_[0-9]{3,4}$",
+      "examples": ["q_001", "q_042", "q_1234"]
+    },
+    "text": {
+      "type": "object",
+      "description": "Question text in multiple languages",
+      "required": ["en"],
+      "properties": {
+        "en": {
+          "type": "string",
+          "description": "English text (required)",
+          "minLength": 5,
+          "maxLength": 200
+        },
+        "bn": {
+          "type": "string",
+          "description": "Bengali text (optional but recommended)",
+          "minLength": 5,
+          "maxLength": 200
+        }
+      },
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "characteristic": {
+      "type": "string",
+      "description": "The characteristic this question tests",
+      "minLength": 2,
+      "maxLength": 100,
+      "examples": ["continent", "is_unesco", "built_year", "population_millions"]
+    },
+    "value": {
+      "description": "The value to compare against (can be any type)",
+      "oneOf": [
+        { "type": "string" },
+        { "type": "number" },
+        { "type": "boolean" },
+        { "type": "array" }
+      ]
+    },
+    "operator": {
+      "type": "string",
+      "description": "Comparison operator",
+      "enum": [
+        "equals",
+        "not_equals",
+        "greater_than",
+        "less_than",
+        "greater_or_equal",
+        "less_or_equal",
+        "contains",
+        "not_contains",
+        "in_range"
+      ],
+      "default": "equals"
+    },
+    "discriminating_power": {
+      "type": "number",
+      "description": "How well this question splits the dataset (0.0 to 1.0)",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "examples": [0.85, 0.72, 0.91]
+    },
+    "category": {
+      "type": "string",
+      "description": "Question category for organization",
+      "enum": [
+        "location",
+        "physical",
+        "temporal",
+        "classification",
+        "cultural",
+        "functional",
+        "political",
+        "natural",
+        "historical",
+        "architectural"
+      ]
+    },
+    "applies_to": {
+      "type": "array",
+      "description": "Which place types this question applies to",
+      "items": {
+        "type": "string",
+        "enum": ["country", "city", "historic_place"]
+      },
+      "minItems": 1,
+      "default": ["country", "city", "historic_place"]
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Metadata about this question",
+      "properties": {
+        "added_date": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When this question was added"
+        },
+        "times_asked": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "How many times this question has been asked",
+          "default": 0
+        },
+        "effectiveness_score": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Real-world effectiveness based on gameplay data"
+        },
+        "contributors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "last_updated": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "notes": {
+      "type": "string",
+      "description": "Internal notes about this question",
+      "maxLength": 500
+    }
+  },
+  "examples": [
+    {
+      "id": "q_001",
+      "text": {
+        "en": "Is it in Europe?",
+        "bn": "এটি কি ইউরোপে?"
+      },
+      "characteristic": "continent",
+      "value": "europe",
+      "operator": "equals",
+      "discriminating_power": 0.95,
+      "category": "location",
+      "applies_to": ["country", "city", "historic_place"],
+      "metadata": {
+        "added_date": "2026-02-01T00:00:00Z",
+        "times_asked": 0,
+        "effectiveness_score": 0.93
+      }
+    },
+    {
+      "id": "q_042",
+      "text": {
+        "en": "Was it built before 1900?",
+        "bn": "এটি কি ১৯০০ সালের আগে নির্মিত হয়েছিল?"
+      },
+      "characteristic": "built_year",
+      "value": 1900,
+      "operator": "less_than",
+      "discriminating_power": 0.68,
+      "category": "temporal",
+      "applies_to": ["historic_place"],
+      "metadata": {
+        "added_date": "2026-02-01T00:00:00Z",
+        "times_asked": 0
+      }
+    }
+  ]
+}

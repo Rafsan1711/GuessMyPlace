@@ -1,0 +1,189 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://guessmyplace.app/schemas/place.json",
+  "title": "Place",
+  "description": "Schema for a place (country, city, or historic place) in GuessMyPlace",
+  "type": "object",
+  "required": ["id", "name", "type", "characteristics"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier in snake_case",
+      "pattern": "^[a-z0-9_]+$",
+      "minLength": 2,
+      "maxLength": 100,
+      "examples": ["eiffel_tower", "france", "tokyo"]
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name of the place",
+      "minLength": 1,
+      "maxLength": 200,
+      "examples": ["Eiffel Tower", "France", "Tokyo"]
+    },
+    "type": {
+      "type": "string",
+      "description": "Type of place",
+      "enum": ["country", "city", "historic_place"]
+    },
+    "characteristics": {
+      "type": "object",
+      "description": "Characteristics that define this place",
+      "minProperties": 5,
+      "additionalProperties": true,
+      "properties": {
+        "continent": {
+          "type": "string",
+          "enum": [
+            "africa",
+            "antarctica",
+            "asia",
+            "europe",
+            "north_america",
+            "oceania",
+            "south_america"
+          ]
+        },
+        "country": {
+          "type": "string",
+          "description": "Country where this place is located"
+        },
+        "region": {
+          "type": "string",
+          "description": "Regional classification"
+        },
+        "climate": {
+          "type": "string",
+          "enum": [
+            "tropical",
+            "arid",
+            "temperate",
+            "continental",
+            "polar",
+            "mediterranean",
+            "humid_subtropical",
+            "oceanic"
+          ]
+        },
+        "population_millions": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 2000
+        },
+        "area_km2": {
+          "type": "number",
+          "minimum": 0
+        },
+        "is_coastal": {
+          "type": "boolean"
+        },
+        "is_island": {
+          "type": "boolean"
+        },
+        "is_landlocked": {
+          "type": "boolean"
+        },
+        "is_capital": {
+          "type": "boolean"
+        },
+        "is_unesco": {
+          "type": "boolean"
+        },
+        "built_year": {
+          "type": "integer",
+          "minimum": -3000,
+          "maximum": 2030
+        },
+        "is_monument": {
+          "type": "boolean"
+        },
+        "is_building": {
+          "type": "boolean"
+        },
+        "is_religious": {
+          "type": "boolean"
+        },
+        "is_ancient": {
+          "type": "boolean"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Metadata about this place entry",
+      "properties": {
+        "added_date": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When this place was added to the database"
+        },
+        "last_updated": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp"
+        },
+        "contributors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of contributors who added/updated this place"
+        },
+        "verified": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether this place data has been verified"
+        },
+        "image_url": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to an image of this place"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Brief description of the place"
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "description": "Source URLs for verification"
+        }
+      }
+    },
+    "aliases": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Alternative names for this place"
+    }
+  },
+  "examples": [
+    {
+      "id": "eiffel_tower",
+      "name": "Eiffel Tower",
+      "type": "historic_place",
+      "characteristics": {
+        "continent": "europe",
+        "country": "france",
+        "city": "paris",
+        "is_unesco": false,
+        "built_year": 1889,
+        "is_monument": true,
+        "is_building": true,
+        "is_religious": false,
+        "material": "iron",
+        "height_meters": 330
+      },
+      "metadata": {
+        "added_date": "2026-02-01T00:00:00Z",
+        "verified": true,
+        "description": "Iconic iron lattice tower in Paris"
+      }
+    }
+  ]
+}

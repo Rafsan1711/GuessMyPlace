@@ -1,0 +1,547 @@
+[
+  {
+    "id": "q_001",
+    "text": {
+      "en": "Is it in Europe?",
+      "bn": "এটি কি ইউরোপে?"
+    },
+    "characteristic": "continent",
+    "value": "europe",
+    "operator": "equals",
+    "discriminating_power": 0.95,
+    "category": "location",
+    "applies_to": ["country", "city", "historic_place"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0,
+      "effectiveness_score": 0.93
+    }
+  },
+  {
+    "id": "q_002",
+    "text": {
+      "en": "Is it in Asia?",
+      "bn": "এটি কি এশিয়ায়?"
+    },
+    "characteristic": "continent",
+    "value": "asia",
+    "operator": "equals",
+    "discriminating_power": 0.95,
+    "category": "location",
+    "applies_to": ["country", "city", "historic_place"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_003",
+    "text": {
+      "en": "Is it in Africa?",
+      "bn": "এটি কি আফ্রিকায়?"
+    },
+    "characteristic": "continent",
+    "value": "africa",
+    "operator": "equals",
+    "discriminating_power": 0.92,
+    "category": "location",
+    "applies_to": ["country", "city", "historic_place"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_004",
+    "text": {
+      "en": "Is it in North America?",
+      "bn": "এটি কি উত্তর আমেরিকায়?"
+    },
+    "characteristic": "continent",
+    "value": "north_america",
+    "operator": "equals",
+    "discriminating_power": 0.91,
+    "category": "location",
+    "applies_to": ["country", "city", "historic_place"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_005",
+    "text": {
+      "en": "Is it in South America?",
+      "bn": "এটি কি দক্ষিণ আমেরিকায়?"
+    },
+    "characteristic": "continent",
+    "value": "south_america",
+    "operator": "equals",
+    "discriminating_power": 0.89,
+    "category": "location",
+    "applies_to": ["country", "city", "historic_place"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_010",
+    "text": {
+      "en": "Is it a capital city?",
+      "bn": "এটি কি একটি রাজধানী শহর?"
+    },
+    "characteristic": "is_capital",
+    "value": true,
+    "operator": "equals",
+    "discriminating_power": 0.75,
+    "category": "classification",
+    "applies_to": ["city"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_011",
+    "text": {
+      "en": "Does it have a coastline?",
+      "bn": "এর কি উপকূল আছে?"
+    },
+    "characteristic": "is_coastal",
+    "value": true,
+    "operator": "equals",
+    "discriminating_power": 0.68,
+    "category": "physical",
+    "applies_to": ["country", "city"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_012",
+    "text": {
+      "en": "Is it an island?",
+      "bn": "এটি কি একটি দ্বীপ?"
+    },
+    "characteristic": "is_island",
+    "value": true,
+    "operator": "equals",
+    "discriminating_power": 0.82,
+    "category": "physical",
+    "applies_to": ["country", "city"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_015",
+    "text": {
+      "en": "Is it a UNESCO World Heritage Site?",
+      "bn": "এটি কি ইউনেস্কো ওয়ার্ল্ড হেরিটেজ সাইট?"
+    },
+    "characteristic": "is_unesco",
+    "value": true,
+    "operator": "equals",
+    "discriminating_power": 0.72,
+    "category": "classification",
+    "applies_to": ["historic_place", "city"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_020",
+    "text": {
+      "en": "Was it built before 1900?",
+      "bn": "এটি কি ১৯০০ সালের আগে নির্মিত হয়েছিল?"
+    },
+    "characteristic": "built_year",
+    "value": 1900,
+    "operator": "less_than",
+    "discriminating_power": 0.68,
+    "category": "temporal",
+    "applies_to": ["historic_place"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_021",
+    "text": {
+      "en": "Was it built in ancient times (before year 500)?",
+      "bn": "এটি কি প্রাচীনকালে (৫০০ সালের আগে) নির্মিত হয়েছিল?"
+    },
+    "characteristic": "built_year",
+    "value": 500,
+    "operator": "less_than",
+    "discriminating_power": 0.75,
+    "category": "temporal",
+    "applies_to": ["historic_place"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_025",
+    "text": {
+      "en": "Is it a monument or statue?",
+      "bn": "এটি কি একটি স্মৃতিস্তম্ভ বা মূর্তি?"
+    },
+    "characteristic": "is_monument",
+    "value": true,
+    "operator": "equals",
+    "discriminating_power": 0.71,
+    "category": "classification",
+    "applies_to": ["historic_place"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_026",
+    "text": {
+      "en": "Is it a religious site?",
+      "bn": "এটি কি একটি ধর্মীয় স্থান?"
+    },
+    "characteristic": "is_religious",
+    "value": true,
+    "operator": "equals",
+    "discriminating_power": 0.69,
+    "category": "classification",
+    "applies_to": ["historic_place"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_030",
+    "text": {
+      "en": "Does it have a metro/subway system?",
+      "bn": "এটির কি মেট্রো/পাতাল রেল ব্যবস্থা আছে?"
+    },
+    "characteristic": "has_metro",
+    "value": true,
+    "operator": "equals",
+    "discriminating_power": 0.65,
+    "category": "functional",
+    "applies_to": ["city"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_031",
+    "text": {
+      "en": "Has it hosted the Olympic Games?",
+      "bn": "এটি কি অলিম্পিক গেমস আয়োজন করেছে?"
+    },
+    "characteristic": "hosted_olympics",
+    "value": true,
+    "operator": "equals",
+    "discriminating_power": 0.78,
+    "category": "historical",
+    "applies_to": ["city"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_035",
+    "text": {
+      "en": "Is it made primarily of stone?",
+      "bn": "এটি কি প্রধানত পাথর দিয়ে তৈরি?"
+    },
+    "characteristic": "material",
+    "value": "stone",
+    "operator": "equals",
+    "discriminating_power": 0.63,
+    "category": "physical",
+    "applies_to": ["historic_place"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_036",
+    "text": {
+      "en": "Is it made of metal (iron, copper, etc.)?",
+      "bn": "এটি কি ধাতু (লোহা, তামা ইত্যাদি) দিয়ে তৈরি?"
+    },
+    "characteristic": "material",
+    "value": "iron",
+    "operator": "equals",
+    "discriminating_power": 0.71,
+    "category": "physical",
+    "applies_to": ["historic_place"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_040",
+    "text": {
+      "en": "Is the population more than 10 million?",
+      "bn": "জনসংখ্যা কি ১০ মিলিয়নের বেশি?"
+    },
+    "characteristic": "population_millions",
+    "value": 10,
+    "operator": "greater_than",
+    "discriminating_power": 0.67,
+    "category": "physical",
+    "applies_to": ["country", "city"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_041",
+    "text": {
+      "en": "Is the population more than 100 million?",
+      "bn": "জনসংখ্যা কি ১০০ মিলিয়নের বেশি?"
+    },
+    "characteristic": "population_millions",
+    "value": 100,
+    "operator": "greater_than",
+    "discriminating_power": 0.74,
+    "category": "physical",
+    "applies_to": ["country"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_045",
+    "text": {
+      "en": "Is it in France?",
+      "bn": "এটি কি ফ্রান্সে?"
+    },
+    "characteristic": "country",
+    "value": "france",
+    "operator": "equals",
+    "discriminating_power": 0.88,
+    "category": "location",
+    "applies_to": ["city", "historic_place"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_046",
+    "text": {
+      "en": "Is it in the United States?",
+      "bn": "এটি কি যুক্তরাষ্ট্রে?"
+    },
+    "characteristic": "country",
+    "value": "usa",
+    "operator": "equals",
+    "discriminating_power": 0.87,
+    "category": "location",
+    "applies_to": ["city", "historic_place"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_047",
+    "text": {
+      "en": "Is it in China?",
+      "bn": "এটি কি চীনে?"
+    },
+    "characteristic": "country",
+    "value": "china",
+    "operator": "equals",
+    "discriminating_power": 0.86,
+    "category": "location",
+    "applies_to": ["city", "historic_place"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_048",
+    "text": {
+      "en": "Is it in India?",
+      "bn": "এটি কি ভারতে?"
+    },
+    "characteristic": "country",
+    "value": "india",
+    "operator": "equals",
+    "discriminating_power": 0.85,
+    "category": "location",
+    "applies_to": ["city", "historic_place"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_050",
+    "text": {
+      "en": "Can you enter inside it?",
+      "bn": "আপনি কি এর ভিতরে প্রবেশ করতে পারবেন?"
+    },
+    "characteristic": "can_enter_inside",
+    "value": true,
+    "operator": "equals",
+    "discriminating_power": 0.61,
+    "category": "functional",
+    "applies_to": ["historic_place"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_051",
+    "text": {
+      "en": "Is it currently in ruins?",
+      "bn": "এটি কি বর্তমানে ধ্বংসাবশেষ?"
+    },
+    "characteristic": "is_ruins",
+    "value": true,
+    "operator": "equals",
+    "discriminating_power": 0.73,
+    "category": "physical",
+    "applies_to": ["historic_place"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_055",
+    "text": {
+      "en": "Is it a member of the European Union?",
+      "bn": "এটি কি ইউরোপীয় ইউনিয়নের সদস্য?"
+    },
+    "characteristic": "eu_member",
+    "value": true,
+    "operator": "equals",
+    "discriminating_power": 0.79,
+    "category": "political",
+    "applies_to": ["country"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_056",
+    "text": {
+      "en": "Is it a member of the G7?",
+      "bn": "এটি কি জি৭ এর সদস্য?"
+    },
+    "characteristic": "g7_member",
+    "value": true,
+    "operator": "equals",
+    "discriminating_power": 0.84,
+    "category": "political",
+    "applies_to": ["country"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_060",
+    "text": {
+      "en": "Does it have skyscrapers?",
+      "bn": "এতে কি আকাশচুম্বী ভবন আছে?"
+    },
+    "characteristic": "has_skyscrapers",
+    "value": true,
+    "operator": "equals",
+    "discriminating_power": 0.66,
+    "category": "physical",
+    "applies_to": ["city"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_061",
+    "text": {
+      "en": "Is it known for technology or innovation?",
+      "bn": "এটি কি প্রযুক্তি বা উদ্ভাবনের জন্য পরিচিত?"
+    },
+    "characteristic": "known_for",
+    "value": "technology",
+    "operator": "contains",
+    "discriminating_power": 0.69,
+    "category": "cultural",
+    "applies_to": ["country", "city"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_065",
+    "text": {
+      "en": "Is it a tower?",
+      "bn": "এটি কি একটি টাওয়ার?"
+    },
+    "characteristic": "is_tower",
+    "value": true,
+    "operator": "equals",
+    "discriminating_power": 0.77,
+    "category": "classification",
+    "applies_to": ["historic_place"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_070",
+    "text": {
+      "en": "Does it use the Euro as currency?",
+      "bn": "এটি কি মুদ্রা হিসেবে ইউরো ব্যবহার করে?"
+    },
+    "characteristic": "currency",
+    "value": "euro",
+    "operator": "equals",
+    "discriminating_power": 0.76,
+    "category": "political",
+    "applies_to": ["country"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  },
+  {
+    "id": "q_071",
+    "text": {
+      "en": "Do people drive on the left side of the road?",
+      "bn": "মানুষ কি রাস্তার বাম দিকে গাড়ি চালায়?"
+    },
+    "characteristic": "drives_on",
+    "value": "left",
+    "operator": "equals",
+    "discriminating_power": 0.72,
+    "category": "cultural",
+    "applies_to": ["country"],
+    "metadata": {
+      "added_date": "2026-02-03T00:00:00Z",
+      "times_asked": 0
+    }
+  }
+]
