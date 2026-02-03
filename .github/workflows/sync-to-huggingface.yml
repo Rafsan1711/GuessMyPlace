@@ -44,15 +44,13 @@ jobs:
           HF_USERNAME: ${{ secrets.HF_USERNAME }}
           HF_SPACE_NAME: ${{ secrets.HF_SPACE_NAME }}
         run: |
-          # Configure git
+          # Configure git with credentials
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
           
-          # Add Hugging Face remote
-          git remote add huggingface https://huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME}.git || true
-          
-          # Prepare backend-only branch
-          git subtree split --prefix backend -b hf-backend
+          # Configure git credential helper to use token
+          git config --global credential.helper store
+          echo "https://${HF_USERNAME}:${HF_TOKEN}@huggingface.co" > ~/.git-credentials
           
           # Create temporary directory for HF space
           mkdir -p hf-space-temp
@@ -60,7 +58,8 @@ jobs:
           
           # Initialize git
           git init
-          git remote add origin https://huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME}.git
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
           
           # Copy backend files
           cp -r ../backend/* .
@@ -93,7 +92,7 @@ jobs:
           - `POST /api/game/answer` - Submit answer
           - `GET /api/game/state/:sessionId` - Get game state
           
-          For full documentation, see [API Docs](https://github.com/YOUR_USERNAME/GuessMyPlace/blob/main/docs/API.md)
+          For full documentation, see the main repository.
           
           ## Environment Variables
           
@@ -107,15 +106,17 @@ jobs:
           
           # Commit changes
           git add .
-          git commit -m "Sync from GitHub: ${{ github.sha }}"
+          git commit -m "Sync from GitHub: $(date +%Y-%m-%d-%H-%M-%S)" || echo "No changes to commit"
           
-          # Push to Hugging Face
-          git push https://user:${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME}.git main --force
+          # Add remote and push
+          git remote add space https://huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME}.git
+          git branch -M main
+          git push -u space main --force
           
           # Cleanup
           cd ..
           rm -rf hf-space-temp
-          git branch -D hf-backend || true
+          rm -f ~/.git-credentials
 
       - name: Verify deployment
         env:
