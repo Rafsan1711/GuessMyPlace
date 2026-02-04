@@ -1,0 +1,16 @@
+# Test CMakeLists.txt
+
+# Test executables
+add_executable(test_decision_tree test_decision_tree.cpp)
+target_link_libraries(test_decision_tree decision_engine)
+
+add_executable(test_information_gain test_information_gain.cpp)
+target_link_libraries(test_information_gain decision_engine)
+
+add_executable(test_probability_engine test_probability_engine.cpp)
+target_link_libraries(test_probability_engine decision_engine)
+
+# Add tests
+add_test(NAME DecisionTreeTest COMMAND test_decision_tree)
+add_test(NAME InformationGainTest COMMAND test_information_gain)
+add_test(NAME ProbabilityEngineTest COMMAND test_probability_engine)
