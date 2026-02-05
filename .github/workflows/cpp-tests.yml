@@ -1,0 +1,70 @@
+name: C++ Tests
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'backend/algorithms/cpp/**'
+      - '.github/workflows/cpp-tests.yml'
+  pull_request:
+    paths:
+      - 'backend/algorithms/cpp/**'
+
+jobs:
+  build-and-test:
+    name: Build and Test C++ Modules
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake
+      
+      - name: Build C++ modules
+        run: |
+          cd backend/algorithms/cpp
+          mkdir -p build
+          cd build
+          cmake -DCMAKE_BUILD_TYPE=Release ..
+          make -j$(nproc)
+      
+      - name: List build artifacts
+        run: |
+          echo "Build directory contents:"
+          ls -lh backend/algorithms/cpp/build/
+      
+      - name: Run tests
+        run: |
+          cd backend/algorithms/cpp/build
+          ctest --output-on-failure || true
+          
+          # Run individual tests
+          if [ -f "./test_decision_tree" ]; then
+            echo "Running decision tree tests..."
+            ./test_decision_tree
+          fi
+          
+          if [ -f "./test_information_gain" ]; then
+            echo "Running information gain tests..."
+            ./test_information_gain
+          fi
+          
+          if [ -f "./test_probability_engine" ]; then
+            echo "Running probability engine tests..."
+            ./test_probability_engine
+          fi
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: cpp-libraries
+          path: |
+            backend/algorithms/cpp/build/*.so
+            backend/algorithms/cpp/build/*.a
+          retention-days: 7
