@@ -7,13 +7,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Compiler flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -O3 -fPIC")
 
-# Find Python (for pybind11)
-find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
-
-# Add pybind11
-add_subdirectory(pybind11)
+# Set build type if not specified
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
 
 # Source files
 set(SOURCES
@@ -36,38 +35,40 @@ add_library(decision_engine SHARED ${SOURCES} ${HEADERS})
 set_target_properties(decision_engine PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION 1
-    PREFIX ""
     OUTPUT_NAME "decision_engine"
+    PUBLIC_HEADER "${HEADERS}"
 )
 
 # Include directories
-target_include_directories(decision_engine PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${Python3_INCLUDE_DIRS}
+target_include_directories(decision_engine PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:include>
 )
-
-# Link libraries
-target_link_libraries(decision_engine PRIVATE
-    ${Python3_LIBRARIES}
-)
-
-# Python bindings (if using pybind11)
-# Uncomment when pybind11 is set up
-# pybind11_add_module(decision_engine_py bindings.cpp ${SOURCES})
-# target_link_libraries(decision_engine_py PRIVATE decision_engine)
 
 # Install targets
 install(TARGETS decision_engine
+    EXPORT DecisionEngineTargets
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     RUNTIME DESTINATION bin
+    PUBLIC_HEADER DESTINATION include/decision_engine
 )
 
 # Testing
 enable_testing()
-add_subdirectory(tests)
+
+# Check if tests directory exists
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+    add_subdirectory(tests)
+endif()
 
 # Print configuration
+message(STATUS "===========================================")
+message(STATUS "GuessMyPlace C++ Decision Engine")
+message(STATUS "===========================================")
 message(STATUS "C++ Standard: ${CMAKE_CXX_STANDARD}")
 message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
-message(STATUS "Python Version: ${Python3_VERSION}")
+message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+message(STATUS "Compiler Flags: ${CMAKE_CXX_FLAGS}")
+message(STATUS "Install Prefix: ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "===========================================")
