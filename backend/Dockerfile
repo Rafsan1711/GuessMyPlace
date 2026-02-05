@@ -21,11 +21,11 @@ WORKDIR /build/algorithms/cpp
 RUN mkdir -p build && cd build && \
     cmake -DCMAKE_BUILD_TYPE=Release .. && \
     make -j$(nproc) && \
-    echo "Build complete. Listing files:" && \
+    echo "=== Build Complete ===" && \
+    echo "Listing build artifacts:" && \
     ls -la && \
-    echo "Checking for .so files:" && \
-    find . -name "*.so" -o -name "*.a" && \
-    echo "Build artifacts ready"
+    echo "=== Searching for libraries ===" && \
+    find . -name "*.so" -o -name "*.a" | while read f; do echo "Found: $f"; done
 
 # Stage 2: Final runtime image
 FROM python:3.10-slim
@@ -42,13 +42,14 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Create app directory
+# Create app directory and lib directory
 WORKDIR /app
+RUN mkdir -p /app/lib
 
 # Copy C++ compiled libraries from builder
-COPY --from=cpp-builder /build/algorithms/cpp/build/*.so /app/lib/ 2>/dev/null || echo "No .so files found"
-COPY --from=cpp-builder /build/algorithms/cpp/build/*.a /app/lib/ 2>/dev/null || echo "No .a files found"
-COPY --from=cpp-builder /build/algorithms/cpp/build/libdecision_engine.so /app/lib/libdecision_engine.so 2>/dev/null || echo "Warning: libdecision_engine.so not found"
+# Use multiple COPY commands to handle files that may or may not exist
+COPY --from=cpp-builder /build/algorithms/cpp/build/libdecision_engine.so /app/lib/libdecision_engine.so
+COPY --from=cpp-builder /build/algorithms/cpp/build/*.a /app/lib/ || true
 
 # Set library path
 ENV LD_LIBRARY_PATH=/app/lib:$LD_LIBRARY_PATH
@@ -63,7 +64,16 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Create necessary directories
-RUN mkdir -p logs data/places data/questions lib
+RUN mkdir -p logs data/places data/questions
+
+# Verify library is accessible
+RUN echo "=== Verifying libraries ===" && \
+    ls -la /app/lib/ && \
+    if [ -f /app/lib/libdecision_engine.so ]; then \
+        echo "✓ C++ library found and ready"; \
+    else \
+        echo "⚠ Warning: C++ library not found"; \
+    fi
 
 # Expose port
 EXPOSE 5000
