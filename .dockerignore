@@ -56,7 +56,7 @@ coverage/
 test-results/
 .nyc_output/
 
-# Build artifacts
+# Build artifacts (except in algorithms/cpp)
 *.tar
 *.tar.gz
 *.zip
@@ -75,3 +75,12 @@ test-results/
 docker-compose.yml
 docker-compose.*.yml
 Dockerfile.dev
+
+# Frontend (not needed in backend)
+frontend/
+
+# Keep C++ build directory structure
+!algorithms/cpp/
+!algorithms/cpp/build/
+algorithms/cpp/build/*
+!algorithms/cpp/build/.gitkeep
