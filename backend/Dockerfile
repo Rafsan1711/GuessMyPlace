@@ -4,6 +4,7 @@ FROM python:3.10-slim as cpp-builder
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y \
+    build-essential \
     g++ \
     cmake \
     make \
@@ -18,9 +19,13 @@ COPY algorithms/cpp /build/algorithms/cpp
 # Build C++ modules
 WORKDIR /build/algorithms/cpp
 RUN mkdir -p build && cd build && \
-    cmake .. && \
-    make && \
-    ls -la
+    cmake -DCMAKE_BUILD_TYPE=Release .. && \
+    make -j$(nproc) && \
+    echo "Build complete. Listing files:" && \
+    ls -la && \
+    echo "Checking for .so files:" && \
+    find . -name "*.so" -o -name "*.a" && \
+    echo "Build artifacts ready"
 
 # Stage 2: Final runtime image
 FROM python:3.10-slim
@@ -31,7 +36,7 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# Install runtime dependencies
+# Install minimal runtime dependencies
 RUN apt-get update && apt-get install -y \
     libstdc++6 \
     curl \
@@ -41,7 +46,12 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Copy C++ compiled libraries from builder
-COPY --from=cpp-builder /build/algorithms/cpp/build /app/algorithms/cpp/build
+COPY --from=cpp-builder /build/algorithms/cpp/build/*.so /app/lib/ 2>/dev/null || echo "No .so files found"
+COPY --from=cpp-builder /build/algorithms/cpp/build/*.a /app/lib/ 2>/dev/null || echo "No .a files found"
+COPY --from=cpp-builder /build/algorithms/cpp/build/libdecision_engine.so /app/lib/libdecision_engine.so 2>/dev/null || echo "Warning: libdecision_engine.so not found"
+
+# Set library path
+ENV LD_LIBRARY_PATH=/app/lib:$LD_LIBRARY_PATH
 
 # Copy requirements first for better caching
 COPY requirements.txt .
@@ -52,11 +62,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Copy data files
-COPY --from=cpp-builder /build/algorithms/cpp/build/*.so /app/algorithms/cpp/build/ || true
-
 # Create necessary directories
-RUN mkdir -p logs data/places data/questions
+RUN mkdir -p logs data/places data/questions lib
 
 # Expose port
 EXPOSE 5000
