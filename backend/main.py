@@ -1,5 +1,6 @@
 """
 GuessMyPlace Backend - FastAPI Single File
+
 Production-ready Akinator-style game engine
 """
 
