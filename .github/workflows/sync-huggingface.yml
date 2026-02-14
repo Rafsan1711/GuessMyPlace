@@ -1,0 +1,48 @@
+name: Sync to Hugging Face Space
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - '.github/workflows/sync-huggingface.yml'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Push to Hugging Face Space
+        env:
+          HF_USERNAME: ${{ secrets.HF_USERNAME }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_NAME: ${{ secrets.HF_SPACE_NAME }}
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          
+          # Clone HF Space repo
+          git clone https://oauth2:${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME} hf-space
+          
+          # Copy backend files
+          cp -r backend/* hf-space/
+          
+          # Copy data files (if needed)
+          if [ -d "data" ]; then
+            cp -r data hf-space/
+          fi
+          
+          # Commit and push
+          cd hf-space
+          git add .
+          git commit -m "Sync from GitHub: ${{ github.event.head_commit.message }}" || echo "No changes to commit"
+          git push https://oauth2:${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME} main
+
+      - name: Notify success
+        run: echo "✅ Successfully synced to Hugging Face Space"

@@ -1,0 +1,5 @@
+{
+  "name": "GuessMyPlace",
+  "description": "An intelligent Akinator-style guessing game for Countries, Cities, and Historic Places using an Information Gain algorithm.",
+  "requestFramePermissions": []
+}
