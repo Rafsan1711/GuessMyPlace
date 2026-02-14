@@ -6,43 +6,112 @@ on:
       - main
     paths:
       - 'backend/**'
+      - 'data/**'
       - '.github/workflows/sync-huggingface.yml'
+  workflow_dispatch: # Manual trigger option
 
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           lfs: true
 
-      - name: Push to Hugging Face Space
-        env:
-          HF_USERNAME: ${{ secrets.HF_USERNAME }}
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          HF_SPACE_NAME: ${{ secrets.HF_SPACE_NAME }}
+      - name: Setup Git
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
-          
-          # Clone HF Space repo
+
+      - name: Clone Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_USERNAME: ${{ secrets.HF_USERNAME }}
+          HF_SPACE_NAME: ${{ secrets.HF_SPACE_NAME }}
+        run: |
           git clone https://oauth2:${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME} hf-space
+          cd hf-space
+          git remote set-url origin https://oauth2:${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME}
+
+      - name: Copy files to Space
+        run: |
+          # Remove old files (except .git)
+          cd hf-space
+          find . -maxdepth 1 ! -name '.git' ! -name '.' ! -name '..' -exec rm -rf {} +
           
           # Copy backend files
-          cp -r backend/* hf-space/
+          cp ../backend/main.py .
+          cp ../backend/requirements.txt .
+          cp ../backend/Dockerfile .
           
-          # Copy data files (if needed)
-          if [ -d "data" ]; then
-            cp -r data hf-space/
+          # Copy data files if exist
+          if [ -d "../data" ]; then
+            cp -r ../data .
           fi
           
-          # Commit and push
+          # List files for debugging
+          echo "Files in Space directory:"
+          ls -la
+
+      - name: Create README.md for Space
+        run: |
+          cd hf-space
+          cat > README.md << 'EOF'
+          ---
+          title: GuessMyPlace API
+          emoji: 🌍
+          colorFrom: blue
+          colorTo: green
+          sdk: docker
+          pinned: false
+          app_port: 7860
+          ---
+
+          # GuessMyPlace Backend API
+
+          Akinator-style guessing game backend powered by FastAPI.
+
+          ## API Endpoints
+
+          - `GET /` - Health check
+          - `POST /api/game/start` - Start new game
+          - `POST /api/game/answer` - Submit answer
+          - `POST /api/game/feedback` - Submit feedback
+          - `GET /api/stats` - Get statistics
+
+          ## Environment Variables
+
+          Set these in Space settings:
+          - `DATABASE_URL` - Supabase PostgreSQL connection string
+          - `REDIS_URL` - Upstash Redis connection string
+          EOF
+
+      - name: Commit and Push to Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_USERNAME: ${{ secrets.HF_USERNAME }}
+          HF_SPACE_NAME: ${{ secrets.HF_SPACE_NAME }}
+        run: |
           cd hf-space
           git add .
-          git commit -m "Sync from GitHub: ${{ github.event.head_commit.message }}" || echo "No changes to commit"
-          git push https://oauth2:${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME} main
+          
+          # Check if there are changes
+          if git diff-index --quiet HEAD --; then
+            echo "No changes to commit"
+          else
+            git commit -m "🔄 Sync from GitHub: ${{ github.event.head_commit.message || 'Manual sync' }}"
+            git push origin main
+            echo "✅ Successfully pushed to Hugging Face Space"
+          fi
 
-      - name: Notify success
-        run: echo "✅ Successfully synced to Hugging Face Space"
+      - name: Wait for Space to rebuild
+        run: |
+          echo "⏳ Space is rebuilding... Check status at:"
+          echo "https://huggingface.co/spaces/${{ secrets.HF_USERNAME }}/${{ secrets.HF_SPACE_NAME }}"
+          
+      - name: Notify
+        run: |
+          echo "✅ Sync completed successfully!"
+          echo "Space URL: https://${{ secrets.HF_USERNAME }}-${{ secrets.HF_SPACE_NAME }}.hf.space"
