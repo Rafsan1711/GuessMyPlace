@@ -37,6 +37,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+---
+
+## [1.0.1] - 2026-02-16
+
+### ✨ Enhanced
+
+#### UI/UX Overhaul
+- Complete visual redesign — darker bg, animated grid + 4 floating orbs + noise texture
+- 5-option answer system: **Yes / Probably / I Don't Know / Probably Not / No**
+- Confidence shown as animated progress bar (instead of dots)
+- Animated shimmer effect on progress bar
+- Thinking animation (3 bouncing colored dots) on guess screen
+- Win screen particle burst animation
+- Answer history: color-coded left border per answer type (5 colors)
+- Streak counter `🔥` added to header
+- Candidate meter: visual bar showing how many places remain active
+- Improved mobile layout — answer buttons stack cleanly on small screens
+
+#### Algorithm Upgrade — Full Bayesian Engine
+- Replaced simple boolean filter with **Bayesian probability scoring**
+- All places start with uniform probability `1/N`
+- Each answer updates probabilities via `P(place|ans) ∝ P(ans|place) × P(place)`
+- **5-level likelihood mapping**: yes=1.0, probably=0.75, idk=0.5, probablyNot=0.25, no=0.0
+- Laplace smoothing (`+0.001`) prevents zero-probability collapse
+- **Entropy-based question selection**: picks question that maximizes expected information gain across all 5 answer outcomes
+- Dynamic confidence threshold: guesses early when top candidate probability ≥ 60–92% depending on questions asked
+- Wrong-guess recovery: sets eliminated place probability near-zero and renormalizes
+
+---
+
 ## [Unreleased] — Roadmap
 
 ### Planned for v1.1.0
