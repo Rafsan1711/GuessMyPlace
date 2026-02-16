@@ -3,7 +3,7 @@
 > An Akinator-style AI place guessing game. Think of any famous place — we'll guess it!
 
 [![Version](https://img.shields.io/badge/version-1.0.0-6c63ff?style=flat-square)](CHANGELOG.md)
-[![License](https://img.shields.io/badge/license-MIT-4ade80?style=flat-square)](LICENSE)
+[![License](https://img.shields.io/badge/license-GPL-v3-4ade80?style=flat-square)](LICENSE)
 [![Status](https://img.shields.io/badge/status-prototype-f472b6?style=flat-square)]()
 
 ---
@@ -150,4 +150,4 @@ Simply add an entry to `data/places.json` following the existing format. Make su
 
 ## 📜 License
 
-MIT © GuessMyPlace Contributors
+GPL-v3 © GuessMyPlace Contributors
