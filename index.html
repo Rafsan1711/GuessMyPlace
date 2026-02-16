@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GuessMyPlace 🌍</title>
+<meta name="description" content="GuessMyPlace - AI-powered place guessing game. Think of any place and we'll guess it!"/>
+<style>
+  :root {
+    --bg: #0d0f1a;
+    --bg2: #13162a;
+    --bg3: #1a1e35;
+    --card: #1e2340;
+    --card2: #252b4a;
+    --border: #2e3560;
+    --border2: #3d4575;
+    --accent: #6c63ff;
+    --accent2: #8b85ff;
+    --accent3: #4ade80;
+    --accent4: #f472b6;
+    --accent5: #fb923c;
+    --text: #e8eaf6;
+    --text2: #9ba3d4;
+    --text3: #6b7498;
+    --yes: #22c55e;
+    --no: #ef4444;
+    --maybe: #eab308;
+    --glow: 0 0 30px rgba(108,99,255,0.15);
+    --glow2: 0 0 60px rgba(108,99,255,0.1);
+    --radius: 16px;
+    --radius2: 12px;
+    --radius3: 8px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+
+  /* BG Animation */
+  .bg-orbs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+  .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.12;animation:orbFloat 8s ease-in-out infinite}
+  .orb1{width:500px;height:500px;background:radial-gradient(circle,#6c63ff,transparent);top:-100px;left:-100px;animation-delay:0s}
+  .orb2{width:400px;height:400px;background:radial-gradient(circle,#f472b6,transparent);bottom:-100px;right:-100px;animation-delay:3s}
+  .orb3{width:300px;height:300px;background:radial-gradient(circle,#4ade80,transparent);top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:6s}
+  @keyframes orbFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-30px) scale(1.05)}}
+  .orb3{animation:orbFloat3 10s ease-in-out infinite}
+  @keyframes orbFloat3{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-60%) scale(1.1)}}
+
+  /* Layout */
+  #app{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column}
+
+  /* Header */
+  header{
+    padding:20px 24px 16px;
+    display:flex;align-items:center;justify-content:space-between;
+    border-bottom:1px solid var(--border);
+    background:rgba(13,15,26,.8);
+    backdrop-filter:blur(20px);
+    position:sticky;top:0;z-index:100;
+  }
+  .logo{display:flex;align-items:center;gap:12px}
+  .logo-icon{
+    width:42px;height:42px;border-radius:12px;
+    background:linear-gradient(135deg,var(--accent),var(--accent4));
+    display:flex;align-items:center;justify-content:center;
+    font-size:20px;box-shadow:0 4px 15px rgba(108,99,255,.4);
+    flex-shrink:0;
+  }
+  .logo-text{font-size:1.4rem;font-weight:800;letter-spacing:-.5px}
+  .logo-text span{
+    background:linear-gradient(135deg,var(--accent2),var(--accent4));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  .logo-badge{
+    font-size:.65rem;font-weight:700;
+    background:linear-gradient(135deg,var(--accent),var(--accent4));
+    color:#fff;padding:2px 8px;border-radius:20px;
+    letter-spacing:.5px;margin-left:2px;
+  }
+  .header-right{display:flex;align-items:center;gap:12px}
+  .stat-pill{
+    display:flex;align-items:center;gap:6px;
+    background:var(--card);border:1px solid var(--border);
+    padding:6px 12px;border-radius:20px;
+    font-size:.8rem;color:var(--text2);
+  }
+  .stat-pill strong{color:var(--text);font-weight:700}
+
+  /* Main */
+  main{flex:1;display:flex;flex-direction:column;align-items:center;padding:24px 16px 40px;gap:20px}
+
+  /* Screen management */
+  .screen{width:100%;max-width:680px;display:none;animation:fadeIn .4s ease}
+  .screen.active{display:flex;flex-direction:column;gap:20px}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+  /* Welcome Screen */
+  .hero{
+    text-align:center;padding:48px 32px;
+    background:var(--card);border:1px solid var(--border);
+    border-radius:var(--radius);box-shadow:var(--glow);
+    position:relative;overflow:hidden;
+  }
+  .hero::before{
+    content:'';position:absolute;inset:0;
+    background:radial-gradient(ellipse at 50% 0%,rgba(108,99,255,.1),transparent 60%);
+    pointer-events:none;
+  }
+  .hero-emoji{font-size:5rem;display:block;margin-bottom:16px;filter:drop-shadow(0 4px 12px rgba(108,99,255,.3));animation:pulse 2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+  .hero h1{font-size:clamp(1.8rem,5vw,2.8rem);font-weight:900;margin-bottom:12px;letter-spacing:-1px;line-height:1.1}
+  .hero h1 span{
+    background:linear-gradient(135deg,var(--accent2) 0%,var(--accent4) 50%,var(--accent5) 100%);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  .hero p{color:var(--text2);font-size:1rem;line-height:1.6;max-width:420px;margin:0 auto 28px}
+
+  .features{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px}
+  @media(max-width:480px){.features{grid-template-columns:1fr}}
+  .feature{
+    background:var(--bg3);border:1px solid var(--border);
+    border-radius:var(--radius2);padding:14px 12px;text-align:center;
+    transition:all .2s;
+  }
+  .feature:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .feature-icon{font-size:1.5rem;margin-bottom:6px}
+  .feature-title{font-size:.8rem;font-weight:700;color:var(--text);margin-bottom:3px}
+  .feature-desc{font-size:.72rem;color:var(--text3)}
+
+  /* Buttons */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:14px 28px;border-radius:var(--radius2);
+    font-size:1rem;font-weight:700;cursor:pointer;
+    border:none;transition:all .2s;letter-spacing:.2px;
+    text-decoration:none;position:relative;overflow:hidden;
+  }
+  .btn::before{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(rgba(255,255,255,.1),transparent);
+    opacity:0;transition:opacity .2s;
+  }
+  .btn:hover::before{opacity:1}
+  .btn-primary{
+    background:linear-gradient(135deg,var(--accent),#8b5cf6);
+    color:#fff;box-shadow:0 4px 20px rgba(108,99,255,.4);
+    width:100%;font-size:1.1rem;padding:16px;
+  }
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(108,99,255,.5)}
+  .btn-primary:active{transform:translateY(0)}
+
+  .answer-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;width:100%}
+  @media(max-width:400px){.answer-btns{grid-template-columns:1fr}}
+  .btn-yes{background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;box-shadow:0 4px 15px rgba(34,197,94,.3)}
+  .btn-yes:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(34,197,94,.4)}
+  .btn-no{background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;box-shadow:0 4px 15px rgba(239,68,68,.3)}
+  .btn-no:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(239,68,68,.4)}
+  .btn-maybe{background:linear-gradient(135deg,#a16207,#eab308);color:#fff;box-shadow:0 4px 15px rgba(234,179,8,.3)}
+  .btn-maybe:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(234,179,8,.4)}
+  .btn-secondary{
+    background:var(--card);color:var(--text2);
+    border:1px solid var(--border);padding:12px 20px;
+    font-size:.9rem;
+  }
+  .btn-secondary:hover{background:var(--card2);color:var(--text);border-color:var(--border2)}
+  .btn-sm{padding:8px 16px;font-size:.85rem}
+
+  /* Game card */
+  .game-card{
+    background:var(--card);border:1px solid var(--border);
+    border-radius:var(--radius);padding:24px;
+    box-shadow:var(--glow);
+  }
+
+  /* Progress */
+  .progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  .progress-label{font-size:.8rem;color:var(--text2);font-weight:600;letter-spacing:.3px}
+  .progress-count{
+    font-size:.8rem;font-weight:700;color:var(--accent2);
+    background:rgba(108,99,255,.15);padding:3px 10px;border-radius:20px;
+  }
+  .progress-track{
+    height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;
+    border:1px solid var(--border);
+  }
+  .progress-fill{
+    height:100%;border-radius:3px;transition:width .5s cubic-bezier(.4,0,.2,1);
+    background:linear-gradient(90deg,var(--accent),var(--accent4));
+    box-shadow:0 0 8px rgba(108,99,255,.5);
+  }
+
+  /* Candidates indicator */
+  .candidates-bar{
+    display:flex;align-items:center;gap:10px;
+    background:var(--bg3);border:1px solid var(--border);
+    border-radius:var(--radius3);padding:10px 14px;margin-top:12px;
+  }
+  .candidates-icon{font-size:1.1rem}
+  .candidates-text{font-size:.82rem;color:var(--text2);flex:1}
+  .candidates-count{
+    font-size:.9rem;font-weight:800;color:var(--accent2);
+    background:rgba(108,99,255,.15);padding:2px 10px;border-radius:20px;
+  }
+
+  /* Question */
+  .q-number{
+    display:inline-block;font-size:.75rem;font-weight:700;
+    color:var(--accent2);background:rgba(108,99,255,.15);
+    padding:3px 12px;border-radius:20px;margin-bottom:14px;
+    letter-spacing:.5px;
+  }
+  .q-text{
+    font-size:clamp(1rem,3vw,1.2rem);font-weight:700;
+    line-height:1.5;margin-bottom:20px;color:var(--text);
+  }
+  .q-hint{font-size:.8rem;color:var(--text3);margin-top:8px;font-style:italic}
+
+  /* History */
+  .history-header{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:12px;
+  }
+  .history-title{font-size:.85rem;font-weight:700;color:var(--text2);letter-spacing:.3px}
+  .history-list{display:flex;flex-direction:column;gap:6px;max-height:180px;overflow-y:auto;
+    scrollbar-width:thin;scrollbar-color:var(--border) transparent;
+  }
+  .history-item{
+    display:flex;align-items:center;gap:10px;
+    background:var(--bg3);border-radius:var(--radius3);
+    padding:8px 12px;
+    border-left:3px solid transparent;
+    font-size:.82rem;
+    animation:slideIn .2s ease;
+  }
+  @keyframes slideIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+  .history-item.yes{border-color:var(--yes)}
+  .history-item.no{border-color:var(--no)}
+  .history-item.maybe{border-color:var(--maybe)}
+  .history-q{flex:1;color:var(--text2)}
+  .history-badge{font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:10px;flex-shrink:0}
+  .badge-yes{background:rgba(34,197,94,.15);color:#22c55e}
+  .badge-no{background:rgba(239,68,68,.15);color:#ef4444}
+  .badge-maybe{background:rgba(234,179,8,.15);color:#eab308}
+
+  /* Guess Screen */
+  .guess-reveal{
+    text-align:center;padding:32px 24px;
+    background:var(--card);border:1px solid var(--border);
+    border-radius:var(--radius);box-shadow:var(--glow);
+    position:relative;overflow:hidden;
+  }
+  .guess-reveal::before{
+    content:'';position:absolute;inset:0;
+    background:radial-gradient(ellipse at 50% 0%,rgba(108,99,255,.12),transparent 60%);
+    pointer-events:none;
+  }
+  .guess-badge{
+    display:inline-flex;align-items:center;gap:6px;
+    background:rgba(108,99,255,.15);border:1px solid rgba(108,99,255,.3);
+    padding:4px 14px;border-radius:20px;
+    font-size:.75rem;font-weight:700;color:var(--accent2);
+    margin-bottom:16px;letter-spacing:.5px;
+  }
+  .guess-spinner{font-size:3rem;display:block;margin-bottom:12px;animation:spin 1s linear infinite}
+  @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+  .guess-name{
+    font-size:clamp(1.8rem,5vw,2.8rem);font-weight:900;
+    margin-bottom:8px;letter-spacing:-1px;line-height:1.1;
+  }
+  .guess-name span{
+    background:linear-gradient(135deg,var(--accent2),var(--accent4),var(--accent5));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  .guess-country{
+    display:inline-flex;align-items:center;gap:6px;
+    color:var(--text2);font-size:.9rem;margin-bottom:20px;
+    background:var(--bg3);border:1px solid var(--border);
+    padding:6px 16px;border-radius:20px;
+  }
+  .guess-confidence{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    margin-bottom:24px;
+  }
+  .conf-label{font-size:.82rem;color:var(--text3)}
+  .conf-dots{display:flex;gap:4px}
+  .conf-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .3s}
+  .conf-dot.active{background:var(--accent)}
+  .conf-pct{font-size:.9rem;font-weight:700;color:var(--accent2)}
+
+  .guess-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .btn-win{
+    background:linear-gradient(135deg,#059669,#10b981);color:#fff;
+    box-shadow:0 4px 15px rgba(16,185,129,.3);
+    grid-column:1/-1;
+  }
+  .btn-win:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(16,185,129,.4)}
+  .btn-wrong{background:var(--card2);color:var(--text2);border:1px solid var(--border)}
+  .btn-wrong:hover{color:var(--text);border-color:var(--border2)}
+
+  /* Win Screen */
+  .win-screen{text-align:center;padding:40px 24px}
+  .win-confetti{font-size:4rem;margin-bottom:16px;display:block;animation:bounce .6s ease infinite alternate}
+  @keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-12px)}}
+  .win-title{font-size:2rem;font-weight:900;margin-bottom:8px}
+  .win-place{
+    font-size:1.4rem;font-weight:700;margin-bottom:20px;
+    background:linear-gradient(135deg,var(--accent2),var(--accent4));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}
+  .stat-card{
+    background:var(--bg3);border:1px solid var(--border);
+    border-radius:var(--radius2);padding:14px;text-align:center;
+  }
+  .stat-val{font-size:1.5rem;font-weight:900;color:var(--accent2)}
+  .stat-label{font-size:.72rem;color:var(--text3);margin-top:3px;font-weight:600;letter-spacing:.3px}
+
+  /* Fail screen */
+  .fail-emoji{font-size:4rem;margin-bottom:12px;display:block;animation:shake .5s ease}
+  @keyframes shake{0%,100%{transform:rotate(0)}25%{transform:rotate(-5deg)}75%{transform:rotate(5deg)}}
+  .reveal-input-wrap{position:relative;margin:16px 0}
+  .reveal-input{
+    width:100%;background:var(--bg3);border:1px solid var(--border);
+    color:var(--text);padding:14px 16px;border-radius:var(--radius2);
+    font-size:1rem;outline:none;transition:border-color .2s;
+  }
+  .reveal-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,99,255,.15)}
+  .reveal-input::placeholder{color:var(--text3)}
+  .btn-reveal{
+    background:linear-gradient(135deg,var(--accent4),#ec4899);color:#fff;
+    box-shadow:0 4px 15px rgba(244,114,182,.3);width:100%;
+  }
+  .btn-reveal:hover{transform:translateY(-2px)}
+
+  /* Suggestion chips */
+  .suggestions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+  .chip{
+    background:var(--bg3);border:1px solid var(--border);
+    color:var(--text2);padding:5px 12px;border-radius:20px;
+    font-size:.78rem;cursor:pointer;transition:all .2s;font-weight:500;
+  }
+  .chip:hover{background:var(--card2);color:var(--text);border-color:var(--accent);transform:translateY(-1px)}
+
+  /* Toast */
+  #toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);
+    background:var(--card);border:1px solid var(--border);
+    color:var(--text);padding:12px 20px;border-radius:var(--radius2);
+    font-size:.9rem;font-weight:600;white-space:nowrap;
+    box-shadow:0 8px 32px rgba(0,0,0,.4);z-index:1000;
+    transition:transform .3s cubic-bezier(.4,0,.2,1);pointer-events:none;
+  }
+  #toast.show{transform:translateX(-50%) translateY(0)}
+
+  /* Loader */
+  .thinking{
+    display:flex;align-items:center;justify-content:center;gap:6px;
+    color:var(--text2);font-size:.9rem;padding:12px;
+  }
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:dotBounce .6s ease-in-out infinite}
+  .dot:nth-child(2){animation-delay:.1s}
+  .dot:nth-child(3){animation-delay:.2s}
+  @keyframes dotBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+  /* How to play */
+  .how-to{
+    background:var(--card);border:1px solid var(--border);
+    border-radius:var(--radius);padding:20px;
+  }
+  .how-title{font-size:.9rem;font-weight:700;color:var(--text2);margin-bottom:14px;letter-spacing:.3px}
+  .steps{display:flex;flex-direction:column;gap:10px}
+  .step{display:flex;align-items:flex-start;gap:12px}
+  .step-num{
+    width:26px;height:26px;border-radius:50%;flex-shrink:0;
+    background:linear-gradient(135deg,var(--accent),#8b5cf6);
+    display:flex;align-items:center;justify-content:center;
+    font-size:.72rem;font-weight:800;color:#fff;
+  }
+  .step-text{font-size:.85rem;color:var(--text2);line-height:1.5;padding-top:3px}
+  .step-text strong{color:var(--text)}
+
+  /* Leaderboard-style answer summary */
+  .answer-summary{
+    background:var(--bg3);border:1px solid var(--border);
+    border-radius:var(--radius2);padding:14px;margin-top:4px;
+  }
+  .as-title{font-size:.78rem;font-weight:700;color:var(--text3);letter-spacing:.4px;margin-bottom:10px}
+  .as-row{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--bg)}
+  .as-row:last-child{border-bottom:none}
+  .as-q{flex:1;font-size:.78rem;color:var(--text2)}
+  .as-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+  /* Footer */
+  footer{
+    text-align:center;padding:16px;
+    border-top:1px solid var(--border);
+    font-size:.78rem;color:var(--text3);
+    background:rgba(13,15,26,.5);
+  }
+  footer a{color:var(--accent2);text-decoration:none}
+  footer a:hover{text-decoration:underline}
+
+  /* Scrollbar */
+  ::-webkit-scrollbar{width:4px;height:4px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+  ::-webkit-scrollbar-thumb:hover{background:var(--border2)}
+
+  @media(max-width:480px){
+    header{padding:14px 16px}
+    .logo-text{font-size:1.15rem}
+    .stat-pill{display:none}
+    main{padding:16px 12px 32px}
+    .hero{padding:32px 20px}
+    .hero-emoji{font-size:4rem}
+    .game-card{padding:18px}
+    .answer-btns{grid-template-columns:1fr 1fr 1fr}
+    .btn{padding:12px 16px;font-size:.9rem}
+    .guess-actions{grid-template-columns:1fr}
+    .btn-win{grid-column:auto}
+    .stats-grid{grid-template-columns:repeat(3,1fr)}
+  }
+</style>
+</head>
+<body>
+<div class="bg-orbs">
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🌍</div>
+      <div>
+        <div class="logo-text">Guess<span>MyPlace</span> <span class="logo-badge">v1.0</span></div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="stat-pill">🎮 Games: <strong id="hdr-games">0</strong></div>
+      <div class="stat-pill">🏆 Wins: <strong id="hdr-wins">0</strong></div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Welcome Screen -->
+    <div id="screen-welcome" class="screen active">
+      <div class="hero">
+        <span class="hero-emoji">🌍</span>
+        <h1>Think of a <span>Place.</span><br/>We'll guess it!</h1>
+        <p>Think of any famous place — a landmark, city, natural wonder, or hidden gem — and our AI will guess it with Yes/No questions.</p>
+        <button class="btn btn-primary" onclick="startGame()">
+          <span>🚀</span> Start Game
+        </button>
+      </div>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">🧠</div>
+          <div class="feature-title">Smart AI</div>
+          <div class="feature-desc">Logical deduction engine</div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🌐</div>
+          <div class="feature-title">Global Places</div>
+          <div class="feature-desc">Landmarks to natural wonders</div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">⚡</div>
+          <div class="feature-title">Fast Guessing</div>
+          <div class="feature-desc">Usually under 20 questions</div>
+        </div>
+      </div>
+      <div class="how-to">
+        <div class="how-title">📋 HOW TO PLAY</div>
+        <div class="steps">
+          <div class="step"><div class="step-num">1</div><div class="step-text"><strong>Think of a place</strong> — any famous location, landmark, or natural wonder in the world.</div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-text"><strong>Answer Yes/No/Maybe</strong> — respond to each question honestly.</div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-text"><strong>We'll guess it!</strong> — our AI narrows down and reveals the place.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="screen-game" class="screen">
+      <div class="game-card">
+        <div class="progress-header">
+          <div class="progress-label">⚡ PROGRESS</div>
+          <div class="progress-count" id="q-counter">Q1 / 20</div>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+        </div>
+        <div class="candidates-bar">
+          <span class="candidates-icon">🎯</span>
+          <span class="candidates-text">Places remaining</span>
+          <span class="candidates-count" id="candidates-count">20</span>
+        </div>
+      </div>
+
+      <div class="game-card">
+        <div class="q-number" id="q-num-badge">QUESTION 1</div>
+        <div class="q-text" id="q-text">Loading question...</div>
+        <div class="q-hint" id="q-hint"></div>
+        <div class="answer-btns" style="margin-top:20px">
+          <button class="btn btn-yes" onclick="answer('yes')">✅ Yes</button>
+          <button class="btn btn-maybe" onclick="answer('maybe')">🤔 Maybe</button>
+          <button class="btn btn-no" onclick="answer('no')">❌ No</button>
+        </div>
+      </div>
+
+      <div class="game-card" id="history-card" style="display:none">
+        <div class="history-header">
+          <div class="history-title">📜 ANSWER HISTORY</div>
+          <button class="btn btn-secondary btn-sm" onclick="resetGame()">🔄 New Game</button>
+        </div>
+        <div class="history-list" id="history-list"></div>
+      </div>
+    </div>
+
+    <!-- Guess Screen -->
+    <div id="screen-guess" class="screen">
+      <div class="guess-reveal">
+        <div class="guess-badge">💡 MY GUESS</div>
+        <div class="guess-name"><span id="guess-name">?</span></div>
+        <div><span class="guess-country">📍 <span id="guess-country">Unknown</span></span></div>
+        <div class="guess-confidence">
+          <span class="conf-label">Confidence:</span>
+          <div class="conf-dots" id="conf-dots"></div>
+          <span class="conf-pct" id="conf-pct">0%</span>
+        </div>
+        <div class="guess-actions">
+          <button class="btn btn-win" onclick="correctGuess()">🎉 Yes, that's it!</button>
+          <button class="btn btn-wrong" onclick="wrongGuess()">❌ Not quite</button>
+          <button class="btn btn-secondary" onclick="resetGame()">🔄 New Game</button>
+        </div>
+      </div>
+
+      <div class="game-card" id="guess-history-wrap">
+        <div class="history-header">
+          <div class="history-title">📜 YOUR ANSWERS</div>
+        </div>
+        <div class="history-list" id="guess-history"></div>
+      </div>
+    </div>
+
+    <!-- Win Screen -->
+    <div id="screen-win" class="screen">
+      <div class="game-card win-screen">
+        <span class="win-confetti" id="win-emoji">🎉</span>
+        <div class="win-title">I got it right!</div>
+        <div class="win-place" id="win-place">The Eiffel Tower</div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-val" id="stat-questions">0</div>
+            <div class="stat-label">QUESTIONS</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="stat-conf">0%</div>
+            <div class="stat-label">CONFIDENCE</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="stat-total">0</div>
+            <div class="stat-label">TOTAL GAMES</div>
+          </div>
+        </div>
+        <div class="answer-summary" id="win-summary">
+          <div class="as-title">KEY ANSWERS</div>
+          <div id="win-summary-rows"></div>
+        </div>
+        <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px">
+          <button class="btn btn-primary" onclick="startGame()">🚀 Play Again</button>
+          <button class="btn btn-secondary" onclick="showScreen('screen-welcome')">🏠 Home</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Give Up / Reveal Screen -->
+    <div id="screen-reveal" class="screen">
+      <div class="game-card">
+        <span class="fail-emoji">😅</span>
+        <div class="win-title" style="font-size:1.6rem;margin-bottom:6px">You stumped me!</div>
+        <p style="color:var(--text2);font-size:.9rem;margin-bottom:16px">I couldn't figure out your place. Would you like to tell me what it was?</p>
+        <div class="reveal-input-wrap">
+          <input type="text" class="reveal-input" id="reveal-input" placeholder="What place were you thinking of?" oninput="onRevealInput()"/>
+        </div>
+        <div id="reveal-suggestions" class="suggestions"></div>
+        <button class="btn btn-reveal" onclick="revealPlace()" style="margin-bottom:10px">🌍 Reveal the Place!</button>
+        <button class="btn btn-secondary" onclick="resetGame()">🔄 Try Another Place</button>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    🌍 <strong>GuessMyPlace</strong> v1.0.0 — Open Source &bull; 
+    <a href="https://github.com" target="_blank">GitHub</a> &bull;
+    Made with ❤️ for the world
+  </footer>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ============================================================
+// GuessMyPlace — Core Engine v1.0.0
+// ============================================================
+const STATE = {
+  places: [],
+  questions: [],
+  candidates: [],
+  asked: [],
+  answers: {},
+  qIndex: 0,
+  maxQ: 20,
+  gamesPlayed: 0,
+  gamesWon: 0,
+  currentGuess: null,
+  dataLoaded: false
+};
+
+// ── Load Data ─────────────────────────────────────────────
+async function loadData() {
+  try {
+    const res = await fetch('./data/places.json');
+    if (!res.ok) throw new Error('fetch failed');
+    const data = await res.json();
+    STATE.places = data.places;
+    STATE.questions = data.questions;
+    STATE.dataLoaded = true;
+  } catch (e) {
+    // Fallback: embedded minimal data for demo purposes
+    console.warn('data/places.json not found — using embedded fallback');
+    loadFallback();
+  }
+}
+
+function loadFallback() {
+  // Minimal fallback so the game works even without the JSON file
+  STATE.places = window.__FALLBACK_PLACES__ || [];
+  STATE.questions = window.__FALLBACK_QUESTIONS__ || [];
+  STATE.dataLoaded = true;
+  if (!STATE.places.length) {
+    showToast('⚠️ Could not load place data. Make sure data/places.json is present.');
+  }
+}
+
+// ── Screen Management ────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+// ── Game Start ───────────────────────────────────────────
+function startGame() {
+  if (!STATE.dataLoaded || !STATE.places.length) {
+    showToast('⏳ Loading place data...');
+    loadData().then(startGame);
+    return;
+  }
+  STATE.candidates = [...STATE.places];
+  STATE.asked = [];
+  STATE.answers = {};
+  STATE.qIndex = 0;
+  STATE.currentGuess = null;
+  document.getElementById('history-list').innerHTML = '';
+  document.getElementById('history-card').style.display = 'none';
+  STATE.gamesPlayed++;
+  updateHeader();
+  showScreen('screen-game');
+  nextQuestion();
+}
+
+// ── Question Engine ──────────────────────────────────────
+function nextQuestion() {
+  // Early guess: if candidates narrowed to 1 (100% sure) or <=2 with high confidence
+  if (STATE.candidates.length === 1) {
+    makeGuess(STATE.candidates[0], 97);
+    return;
+  }
+  if (STATE.candidates.length === 0) {
+    showScreen('screen-reveal');
+    return;
+  }
+  if (STATE.qIndex >= STATE.maxQ) {
+    // Best guess after max questions
+    const best = bestCandidate();
+    makeGuess(best.place, best.conf);
+    return;
+  }
+
+  // Confidence check at certain thresholds
+  if (STATE.qIndex >= 5 && STATE.candidates.length <= 2) {
+    const best = bestCandidate();
+    if (best.conf >= 85) { makeGuess(best.place, best.conf); return; }
+  }
+  if (STATE.qIndex >= 8 && STATE.candidates.length <= 3) {
+    const best = bestCandidate();
+    if (best.conf >= 80) { makeGuess(best.place, best.conf); return; }
+  }
+  if (STATE.qIndex >= 12) {
+    const best = bestCandidate();
+    if (best.conf >= 70) { makeGuess(best.place, best.conf); return; }
+  }
+
+  const q = pickBestQuestion();
+  if (!q) {
+    const best = bestCandidate();
+    makeGuess(best.place, best.conf);
+    return;
+  }
+
+  STATE.asked.push(q.id);
+  updateGameUI(q);
+}
+
+function pickBestQuestion() {
+  const available = STATE.questions.filter(q => !STATE.asked.includes(q.id));
+  if (!available.length) return null;
+
+  let best = null, bestScore = -1;
+  for (const q of available) {
+    const score = questionScore(q);
+    if (score > bestScore) { bestScore = score; best = q; }
+  }
+  return best;
+}
+
+function questionScore(q) {
+  if (!STATE.candidates.length) return 0;
+  let yes = 0, no = 0;
+  for (const p of STATE.candidates) {
+    const val = p.attributes[q.attribute];
+    if (val === true) yes++;
+    else no++;
+  }
+  const total = STATE.candidates.length;
+  // Score = information gain (how close to 50/50 split)
+  const ratio = yes / total;
+  const balance = 1 - Math.abs(ratio - 0.5) * 2; // 1 = perfect split, 0 = useless
+  return balance * q.weight;
+}
+
+function applyAnswer(q, ans) {
+  // Filter candidates based on answer
+  STATE.candidates = STATE.candidates.filter(p => {
+    const val = p.attributes[q.attribute];
+    if (ans === 'yes')   return val === true;
+    if (ans === 'no')    return val === false;
+    if (ans === 'maybe') return true; // maybe = don't filter
+    return true;
+  });
+}
+
+function bestCandidate() {
+  if (!STATE.candidates.length) return { place: STATE.places[0], conf: 30 };
+  if (STATE.candidates.length === 1) return { place: STATE.candidates[0], conf: 97 };
+
+  // Score each candidate by how well they match all our answers
+  let scores = STATE.candidates.map(p => {
+    let score = 0, total = 0;
+    for (const [qId, ans] of Object.entries(STATE.answers)) {
+      const q = STATE.questions.find(q => q.id === parseInt(qId));
+      if (!q) continue;
+      const val = p.attributes[q.attribute];
+      total++;
+      if (ans === 'yes' && val === true) score++;
+      else if (ans === 'no' && val === false) score++;
+      else if (ans === 'maybe') score += 0.5;
+    }
+    return { place: p, score: total > 0 ? score / total : 0 };
+  });
+
+  scores.sort((a, b) => b.score - a.score);
+  const top = scores[0];
+  const n = STATE.candidates.length;
+  const conf = Math.min(95, Math.round(
+    (top.score * 70) + (n <= 1 ? 25 : n <= 2 ? 15 : n <= 3 ? 10 : n <= 5 ? 5 : 0)
+  ));
+  return { place: top.place, conf: Math.max(40, conf) };
+}
+
+// ── UI Updates ───────────────────────────────────────────
+function updateGameUI(q) {
+  const num = STATE.qIndex + 1;
+  const pct = Math.round((num / STATE.maxQ) * 100);
+  document.getElementById('q-num-badge').textContent = `QUESTION ${num}`;
+  document.getElementById('q-text').textContent = q.text;
+  document.getElementById('q-counter').textContent = `Q${num} / ${STATE.maxQ}`;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('candidates-count').textContent = STATE.candidates.length;
+
+  // Hint
+  const hints = {
+    isManmade: 'Anything built or created by people counts.',
+    isNatural: 'Rivers, mountains, forests, natural phenomena...',
+    isAncient: 'Over 500 years old.',
+    isInAsia: 'Includes Middle East, South Asia, East Asia...',
+    isHeritage: 'Listed as UNESCO World Heritage Site.',
+    isUnderWater: 'Partially or fully underwater — like a reef.',
+    isTall: 'Tower, skyscraper, or very high structure.',
+  };
+  document.getElementById('q-hint').textContent = hints[q.attribute] || '';
+}
+
+function updateHeader() {
+  document.getElementById('hdr-games').textContent = STATE.gamesPlayed;
+  document.getElementById('hdr-wins').textContent = STATE.gamesWon;
+}
+
+// ── Answer Handler ───────────────────────────────────────
+function answer(ans) {
+  const qId = STATE.asked[STATE.asked.length - 1];
+  const q = STATE.questions.find(q => q.id === qId);
+  if (!q) return;
+
+  STATE.answers[qId] = ans;
+  applyAnswer(q, ans);
+
+  // Add to history
+  addHistory(q.text, ans);
+  STATE.qIndex++;
+  nextQuestion();
+}
+
+function addHistory(text, ans) {
+  const list = document.getElementById('history-list');
+  const item = document.createElement('div');
+  item.className = `history-item ${ans}`;
+  const label = ans === 'yes' ? '✅ YES' : ans === 'no' ? '❌ NO' : '🤔 MAYBE';
+  const cls = ans === 'yes' ? 'badge-yes' : ans === 'no' ? 'badge-no' : 'badge-maybe';
+  item.innerHTML = `<span class="history-q">${text}</span><span class="history-badge ${cls}">${label}</span>`;
+  list.insertBefore(item, list.firstChild);
+  document.getElementById('history-card').style.display = 'block';
+}
+
+// ── Guess Screen ─────────────────────────────────────────
+function makeGuess(place, conf) {
+  STATE.currentGuess = { place, conf };
+
+  document.getElementById('guess-name').textContent = place.name;
+  document.getElementById('guess-country').textContent = `${place.country} · ${place.continent}`;
+
+  // Confidence dots
+  const dots = document.getElementById('conf-dots');
+  dots.innerHTML = '';
+  const dotCount = 5;
+  const active = Math.round((conf / 100) * dotCount);
+  for (let i = 0; i < dotCount; i++) {
+    const d = document.createElement('div');
+    d.className = 'conf-dot' + (i < active ? ' active' : '');
+    dots.appendChild(d);
+  }
+  document.getElementById('conf-pct').textContent = conf + '%';
+
+  // Copy history to guess screen
+  const gh = document.getElementById('guess-history');
+  gh.innerHTML = document.getElementById('history-list').innerHTML;
+
+  showScreen('screen-guess');
+}
+
+function correctGuess() {
+  STATE.gamesWon++;
+  updateHeader();
+  const { place, conf } = STATE.currentGuess;
+
+  document.getElementById('win-place').textContent = place.name;
+  document.getElementById('stat-questions').textContent = STATE.qIndex;
+  document.getElementById('stat-conf').textContent = conf + '%';
+  document.getElementById('stat-total').textContent = STATE.gamesPlayed;
+
+  // Win emoji based on performance
+  const emoji = STATE.qIndex <= 5 ? '🧠' : STATE.qIndex <= 10 ? '🎉' : '😅';
+  document.getElementById('win-emoji').textContent = emoji;
+
+  // Summary of key answers
+  const rows = document.getElementById('win-summary-rows');
+  rows.innerHTML = '';
+  const ansEntries = Object.entries(STATE.answers).slice(0, 6);
+  for (const [qId, ans] of ansEntries) {
+    const q = STATE.questions.find(q => q.id === parseInt(qId));
+    if (!q) continue;
+    const row = document.createElement('div');
+    row.className = 'as-row';
+    const color = ans === 'yes' ? '#22c55e' : ans === 'no' ? '#ef4444' : '#eab308';
+    row.innerHTML = `<div class="as-dot" style="background:${color}"></div><div class="as-q">${q.text}</div>`;
+    rows.appendChild(row);
+  }
+
+  showScreen('screen-win');
+}
+
+function wrongGuess() {
+  // Remove wrong guess from candidates and keep going
+  STATE.candidates = STATE.candidates.filter(p => p.id !== STATE.currentGuess.place.id);
+  if (!STATE.candidates.length || STATE.qIndex >= STATE.maxQ) {
+    showScreen('screen-reveal');
+    return;
+  }
+  showToast("Let me think again... 🤔");
+  showScreen('screen-game');
+  const best = bestCandidate();
+  setTimeout(() => makeGuess(best.place, best.conf), 600);
+}
+
+// ── Reveal Screen ────────────────────────────────────────
+function onRevealInput() {
+  const val = document.getElementById('reveal-input').value.toLowerCase();
+  const wrap = document.getElementById('reveal-suggestions');
+  wrap.innerHTML = '';
+  if (!val) return;
+  const matches = STATE.places.filter(p =>
+    p.name.toLowerCase().includes(val) || p.country.toLowerCase().includes(val)
+  ).slice(0, 6);
+  matches.forEach(p => {
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.textContent = p.name;
+    chip.onclick = () => {
+      document.getElementById('reveal-input').value = p.name;
+      wrap.innerHTML = '';
+    };
+    wrap.appendChild(chip);
+  });
+}
+
+function revealPlace() {
+  const val = document.getElementById('reveal-input').value.trim();
+  if (!val) { showToast('Please enter the place name!'); return; }
+  showToast(`Thanks! We'll learn "${val}" for future updates 🌍`);
+  setTimeout(resetGame, 2000);
+}
+
+// ── Reset ────────────────────────────────────────────────
+function resetGame() {
+  showScreen('screen-welcome');
+}
+
+// ── Toast ────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── Init ─────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  loadData();
+});
+</script>
+</body>
+</html>
