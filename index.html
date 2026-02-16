@@ -666,17 +666,23 @@ function calcConf(topProb){
 
 // ── Decision: Guess or Continue ─────────────────────────
 function shouldGuess(){
+  // Never guess before asking at least 3 questions
+  if(STATE.qIdx < 3) return false;
+
   const best = bestCand();
-  const n = STATE.candidates.length;
   const dominates = best.prob;
 
-  if(dominates >= 0.92) return true;          // Very high confidence
-  if(dominates >= 0.80 && STATE.qIdx >= 5) return true;
-  if(dominates >= 0.70 && STATE.qIdx >= 8) return true;
-  if(dominates >= 0.60 && STATE.qIdx >= 12) return true;
-  if(STATE.qIdx >= STATE.maxQ) return true;   // Forced guess
-  if(n <= 1) return true;                      // Only 1 candidate
-  if(n === 2 && STATE.qIdx >= 10) return true;
+  // Count meaningfully active candidates (prob > 1% of uniform)
+  const threshold = 0.8 / STATE.totalPlaces;
+  const activeCands = STATE.candidates.filter(c => c.prob > threshold).length;
+
+  if(activeCands <= 1) return true;                             // Only 1 real candidate
+  if(dominates >= 0.92) return true;                           // Overwhelming confidence
+  if(dominates >= 0.82 && STATE.qIdx >= 5) return true;
+  if(dominates >= 0.72 && STATE.qIdx >= 8) return true;
+  if(dominates >= 0.62 && STATE.qIdx >= 12) return true;
+  if(activeCands <= 2 && STATE.qIdx >= 10) return true;
+  if(STATE.qIdx >= STATE.maxQ) return true;                    // Forced guess
   return false;
 }
 
@@ -790,8 +796,16 @@ function wrongGuess(){
   );
   normalize();
   showToast("Hmm, let me reconsider… 🤔");
+
+  // Check if we still have viable candidates before guessing again
+  const threshold = 0.8 / STATE.totalPlaces;
+  const activeCands = STATE.candidates.filter(c => c.prob > threshold).length;
+
+  if(activeCands === 0){ showS('s-reveal'); return; }
+
   showS('s-game');
-  setTimeout(()=>{ const b=bestCand(); doGuess(b.place,calcConf(b.prob)); }, 700);
+  // Continue asking questions instead of immediately re-guessing
+  setTimeout(nextQ, 500);
 }
 
 function resetGame(){ STATE.streak=0; updateHdr(); showS('s-welcome'); }
