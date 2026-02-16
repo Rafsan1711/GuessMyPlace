@@ -6,956 +6,853 @@
 <title>GuessMyPlace 🌍</title>
 <meta name="description" content="GuessMyPlace - AI-powered place guessing game. Think of any place and we'll guess it!"/>
 <style>
-  :root {
-    --bg: #0d0f1a;
-    --bg2: #13162a;
-    --bg3: #1a1e35;
-    --card: #1e2340;
-    --card2: #252b4a;
-    --border: #2e3560;
-    --border2: #3d4575;
-    --accent: #6c63ff;
-    --accent2: #8b85ff;
-    --accent3: #4ade80;
-    --accent4: #f472b6;
-    --accent5: #fb923c;
-    --text: #e8eaf6;
-    --text2: #9ba3d4;
-    --text3: #6b7498;
-    --yes: #22c55e;
-    --no: #ef4444;
-    --maybe: #eab308;
-    --glow: 0 0 30px rgba(108,99,255,0.15);
-    --glow2: 0 0 60px rgba(108,99,255,0.1);
-    --radius: 16px;
-    --radius2: 12px;
-    --radius3: 8px;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  html{scroll-behavior:smooth}
-  body{
-    background:var(--bg);
-    color:var(--text);
-    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
-    min-height:100vh;
-    overflow-x:hidden;
-  }
+:root {
+  --bg:#07080f;--bg2:#0d0f1c;--bg3:#11142a;
+  --card:#151828;--card2:#1b1f35;--card3:#1f2440;
+  --border:#232847;--border2:#2e3560;--border3:#3a4180;
+  --accent:#7c6fff;--accent2:#a89bff;--accent3:#4ade80;
+  --accent4:#f472b6;--accent5:#fb923c;--accent6:#38bdf8;
+  --text:#eceef8;--text2:#9ba3d4;--text3:#5a6394;
+  --yes:#22c55e;--prob:#86efac;--maybe:#eab308;
+  --probnot:#f97316;--no:#ef4444;
+  --r:18px;--r2:13px;--r3:9px;
+  --shadow:0 8px 32px rgba(0,0,0,.6);
+  --glow:0 0 40px rgba(124,111,255,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
 
-  /* BG Animation */
-  .bg-orbs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
-  .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.12;animation:orbFloat 8s ease-in-out infinite}
-  .orb1{width:500px;height:500px;background:radial-gradient(circle,#6c63ff,transparent);top:-100px;left:-100px;animation-delay:0s}
-  .orb2{width:400px;height:400px;background:radial-gradient(circle,#f472b6,transparent);bottom:-100px;right:-100px;animation-delay:3s}
-  .orb3{width:300px;height:300px;background:radial-gradient(circle,#4ade80,transparent);top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:6s}
-  @keyframes orbFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-30px) scale(1.05)}}
-  .orb3{animation:orbFloat3 10s ease-in-out infinite}
-  @keyframes orbFloat3{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-60%) scale(1.1)}}
+/* ── Animated Background ── */
+.bg-wrap{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bg-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(124,111,255,.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(124,111,255,.04) 1px,transparent 1px);
+  background-size:40px 40px;
+  mask-image:radial-gradient(ellipse at 50% 50%,black 20%,transparent 75%);
+}
+.orb{position:absolute;border-radius:50%;filter:blur(100px);opacity:.14;animation:float 12s ease-in-out infinite}
+.o1{width:600px;height:600px;background:radial-gradient(circle,#7c6fff,#a855f7,transparent 70%);top:-150px;left:-150px}
+.o2{width:500px;height:500px;background:radial-gradient(circle,#f472b6,#ec4899,transparent 70%);bottom:-150px;right:-150px;animation-delay:-5s}
+.o3{width:350px;height:350px;background:radial-gradient(circle,#4ade80,#22c55e,transparent 70%);top:40%;left:60%;animation-delay:-9s}
+.o4{width:300px;height:300px;background:radial-gradient(circle,#38bdf8,#0ea5e9,transparent 70%);top:60%;left:10%;animation-delay:-3s}
+@keyframes float{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(20px,-30px) scale(1.05)}66%{transform:translate(-15px,20px) scale(.97)}}
+.noise{position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");opacity:.4}
 
-  /* Layout */
-  #app{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column}
+/* ── Layout ── */
+#app{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column}
 
-  /* Header */
-  header{
-    padding:20px 24px 16px;
-    display:flex;align-items:center;justify-content:space-between;
-    border-bottom:1px solid var(--border);
-    background:rgba(13,15,26,.8);
-    backdrop-filter:blur(20px);
-    position:sticky;top:0;z-index:100;
-  }
-  .logo{display:flex;align-items:center;gap:12px}
-  .logo-icon{
-    width:42px;height:42px;border-radius:12px;
-    background:linear-gradient(135deg,var(--accent),var(--accent4));
-    display:flex;align-items:center;justify-content:center;
-    font-size:20px;box-shadow:0 4px 15px rgba(108,99,255,.4);
-    flex-shrink:0;
-  }
-  .logo-text{font-size:1.4rem;font-weight:800;letter-spacing:-.5px}
-  .logo-text span{
-    background:linear-gradient(135deg,var(--accent2),var(--accent4));
-    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  }
-  .logo-badge{
-    font-size:.65rem;font-weight:700;
-    background:linear-gradient(135deg,var(--accent),var(--accent4));
-    color:#fff;padding:2px 8px;border-radius:20px;
-    letter-spacing:.5px;margin-left:2px;
-  }
-  .header-right{display:flex;align-items:center;gap:12px}
-  .stat-pill{
-    display:flex;align-items:center;gap:6px;
-    background:var(--card);border:1px solid var(--border);
-    padding:6px 12px;border-radius:20px;
-    font-size:.8rem;color:var(--text2);
-  }
-  .stat-pill strong{color:var(--text);font-weight:700}
+/* ── Header ── */
+header{
+  padding:14px 20px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid rgba(35,40,71,.8);
+  background:rgba(7,8,15,.85);backdrop-filter:blur(24px) saturate(180%);
+  position:sticky;top:0;z-index:100;
+}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{
+  width:38px;height:38px;border-radius:11px;flex-shrink:0;
+  background:linear-gradient(135deg,#7c6fff,#f472b6);
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+  box-shadow:0 0 20px rgba(124,111,255,.5);
+  animation:iconPulse 3s ease-in-out infinite;
+}
+@keyframes iconPulse{0%,100%{box-shadow:0 0 20px rgba(124,111,255,.5)}50%{box-shadow:0 0 35px rgba(244,114,182,.6)}}
+.logo-text{font-size:1.25rem;font-weight:900;letter-spacing:-.5px;color:var(--text)}
+.logo-text em{font-style:normal;background:linear-gradient(135deg,var(--accent2),var(--accent4));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo-v{font-size:.62rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent4));color:#fff;padding:2px 7px;border-radius:20px;margin-left:4px;vertical-align:middle}
+.hdr-stats{display:flex;gap:8px}
+.hdr-pill{
+  display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;
+  background:rgba(21,24,40,.9);border:1px solid var(--border);
+  font-size:.76rem;color:var(--text2);
+}
+.hdr-pill strong{color:var(--text);font-weight:700}
 
-  /* Main */
-  main{flex:1;display:flex;flex-direction:column;align-items:center;padding:24px 16px 40px;gap:20px}
+/* ── Main ── */
+main{flex:1;display:flex;flex-direction:column;align-items:center;padding:28px 14px 48px;gap:18px}
+.screen{width:100%;max-width:660px;display:none;animation:fadeUp .4s cubic-bezier(.16,1,.3,1) both}
+.screen.active{display:flex;flex-direction:column;gap:16px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
 
-  /* Screen management */
-  .screen{width:100%;max-width:680px;display:none;animation:fadeIn .4s ease}
-  .screen.active{display:flex;flex-direction:column;gap:20px}
-  @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+/* ── Cards ── */
+.card{
+  background:rgba(21,24,40,.9);border:1px solid var(--border);
+  border-radius:var(--r);padding:22px;box-shadow:var(--shadow);
+  backdrop-filter:blur(12px);
+  position:relative;overflow:hidden;
+}
+.card::before{
+  content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(135deg,rgba(124,111,255,.06),transparent 50%,rgba(244,114,182,.04));
+}
+.card-glow{box-shadow:var(--shadow),var(--glow)}
 
-  /* Welcome Screen */
-  .hero{
-    text-align:center;padding:48px 32px;
-    background:var(--card);border:1px solid var(--border);
-    border-radius:var(--radius);box-shadow:var(--glow);
-    position:relative;overflow:hidden;
-  }
-  .hero::before{
-    content:'';position:absolute;inset:0;
-    background:radial-gradient(ellipse at 50% 0%,rgba(108,99,255,.1),transparent 60%);
-    pointer-events:none;
-  }
-  .hero-emoji{font-size:5rem;display:block;margin-bottom:16px;filter:drop-shadow(0 4px 12px rgba(108,99,255,.3));animation:pulse 2s ease-in-out infinite}
-  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
-  .hero h1{font-size:clamp(1.8rem,5vw,2.8rem);font-weight:900;margin-bottom:12px;letter-spacing:-1px;line-height:1.1}
-  .hero h1 span{
-    background:linear-gradient(135deg,var(--accent2) 0%,var(--accent4) 50%,var(--accent5) 100%);
-    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  }
-  .hero p{color:var(--text2);font-size:1rem;line-height:1.6;max-width:420px;margin:0 auto 28px}
+/* ── Hero ── */
+.hero{text-align:center;padding:48px 28px 40px}
+.hero-globe{
+  font-size:5.5rem;display:block;margin-bottom:20px;
+  animation:globeSpin 6s ease-in-out infinite;
+  filter:drop-shadow(0 0 30px rgba(124,111,255,.5));
+}
+@keyframes globeSpin{0%,100%{transform:scale(1) rotate(-3deg)}50%{transform:scale(1.07) rotate(3deg)}}
+.hero h1{font-size:clamp(2rem,5.5vw,3rem);font-weight:900;letter-spacing:-1.5px;line-height:1.05;margin-bottom:14px}
+.hero h1 .g1{background:linear-gradient(135deg,#a89bff,#7c6fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero h1 .g2{background:linear-gradient(135deg,#f472b6,#fb923c);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{color:var(--text2);font-size:.97rem;line-height:1.7;max-width:420px;margin:0 auto 32px}
 
-  .features{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px}
-  @media(max-width:480px){.features{grid-template-columns:1fr}}
-  .feature{
-    background:var(--bg3);border:1px solid var(--border);
-    border-radius:var(--radius2);padding:14px 12px;text-align:center;
-    transition:all .2s;
-  }
-  .feature:hover{border-color:var(--accent);transform:translateY(-2px)}
-  .feature-icon{font-size:1.5rem;margin-bottom:6px}
-  .feature-title{font-size:.8rem;font-weight:700;color:var(--text);margin-bottom:3px}
-  .feature-desc{font-size:.72rem;color:var(--text3)}
+.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:28px}
+.feat{
+  background:rgba(17,20,42,.7);border:1px solid var(--border);border-radius:var(--r2);
+  padding:16px 12px;text-align:center;transition:all .25s;cursor:default;
+}
+.feat:hover{border-color:var(--accent);background:rgba(124,111,255,.08);transform:translateY(-3px)}
+.feat-i{font-size:1.6rem;margin-bottom:8px}
+.feat-t{font-size:.79rem;font-weight:700;color:var(--text);margin-bottom:3px}
+.feat-d{font-size:.72rem;color:var(--text3);line-height:1.4}
 
-  /* Buttons */
-  .btn{
-    display:inline-flex;align-items:center;justify-content:center;gap:8px;
-    padding:14px 28px;border-radius:var(--radius2);
-    font-size:1rem;font-weight:700;cursor:pointer;
-    border:none;transition:all .2s;letter-spacing:.2px;
-    text-decoration:none;position:relative;overflow:hidden;
-  }
-  .btn::before{
-    content:'';position:absolute;inset:0;
-    background:linear-gradient(rgba(255,255,255,.1),transparent);
-    opacity:0;transition:opacity .2s;
-  }
-  .btn:hover::before{opacity:1}
-  .btn-primary{
-    background:linear-gradient(135deg,var(--accent),#8b5cf6);
-    color:#fff;box-shadow:0 4px 20px rgba(108,99,255,.4);
-    width:100%;font-size:1.1rem;padding:16px;
-  }
-  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(108,99,255,.5)}
-  .btn-primary:active{transform:translateY(0)}
+/* ── Buttons ── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:13px 24px;border-radius:var(--r2);font-size:.95rem;font-weight:700;
+  cursor:pointer;border:none;transition:all .2s cubic-bezier(.4,0,.2,1);
+  letter-spacing:.1px;position:relative;overflow:hidden;outline:none;
+  -webkit-user-select:none;user-select:none;
+}
+.btn::after{content:'';position:absolute;inset:0;background:linear-gradient(rgba(255,255,255,.08),transparent);opacity:0;transition:opacity .2s}
+.btn:hover::after{opacity:1}
+.btn:active{transform:scale(.97)!important}
 
-  .answer-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;width:100%}
-  @media(max-width:400px){.answer-btns{grid-template-columns:1fr}}
-  .btn-yes{background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;box-shadow:0 4px 15px rgba(34,197,94,.3)}
-  .btn-yes:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(34,197,94,.4)}
-  .btn-no{background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;box-shadow:0 4px 15px rgba(239,68,68,.3)}
-  .btn-no:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(239,68,68,.4)}
-  .btn-maybe{background:linear-gradient(135deg,#a16207,#eab308);color:#fff;box-shadow:0 4px 15px rgba(234,179,8,.3)}
-  .btn-maybe:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(234,179,8,.4)}
-  .btn-secondary{
-    background:var(--card);color:var(--text2);
-    border:1px solid var(--border);padding:12px 20px;
-    font-size:.9rem;
-  }
-  .btn-secondary:hover{background:var(--card2);color:var(--text);border-color:var(--border2)}
-  .btn-sm{padding:8px 16px;font-size:.85rem}
+.btn-start{
+  background:linear-gradient(135deg,#7c6fff,#a855f7);color:#fff;
+  box-shadow:0 4px 24px rgba(124,111,255,.45);
+  width:100%;font-size:1.05rem;padding:17px;border-radius:var(--r);
+}
+.btn-start:hover{transform:translateY(-3px);box-shadow:0 10px 35px rgba(124,111,255,.55)}
 
-  /* Game card */
-  .game-card{
-    background:var(--card);border:1px solid var(--border);
-    border-radius:var(--radius);padding:24px;
-    box-shadow:var(--glow);
-  }
+/* Answer buttons — 5 options */
+.answer-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:20px}
+.answer-grid .btn-dk{grid-column:1/-1}
+.abtn{border-radius:var(--r2);font-size:.88rem;padding:13px 10px;flex-direction:column;gap:3px;line-height:1.2}
+.abtn .alabel{font-size:.68rem;font-weight:600;opacity:.75;letter-spacing:.4px;text-transform:uppercase}
 
-  /* Progress */
-  .progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-  .progress-label{font-size:.8rem;color:var(--text2);font-weight:600;letter-spacing:.3px}
-  .progress-count{
-    font-size:.8rem;font-weight:700;color:var(--accent2);
-    background:rgba(108,99,255,.15);padding:3px 10px;border-radius:20px;
-  }
-  .progress-track{
-    height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;
-    border:1px solid var(--border);
-  }
-  .progress-fill{
-    height:100%;border-radius:3px;transition:width .5s cubic-bezier(.4,0,.2,1);
-    background:linear-gradient(90deg,var(--accent),var(--accent4));
-    box-shadow:0 0 8px rgba(108,99,255,.5);
-  }
+.btn-yes{background:linear-gradient(135deg,#15803d,#22c55e);color:#fff;box-shadow:0 4px 18px rgba(34,197,94,.3)}
+.btn-yes:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(34,197,94,.45)}
+.btn-prob{background:linear-gradient(135deg,#166534,#4ade80);color:#fff;box-shadow:0 4px 18px rgba(74,222,128,.25)}
+.btn-prob:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(74,222,128,.38)}
+.btn-dk{background:linear-gradient(135deg,#78350f,#eab308);color:#fff;box-shadow:0 4px 18px rgba(234,179,8,.25)}
+.btn-dk:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(234,179,8,.38)}
+.btn-probnot{background:linear-gradient(135deg,#9a3412,#f97316);color:#fff;box-shadow:0 4px 18px rgba(249,115,22,.25)}
+.btn-probnot:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(249,115,22,.38)}
+.btn-no{background:linear-gradient(135deg,#991b1b,#ef4444);color:#fff;box-shadow:0 4px 18px rgba(239,68,68,.3)}
+.btn-no:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(239,68,68,.45)}
 
-  /* Candidates indicator */
-  .candidates-bar{
-    display:flex;align-items:center;gap:10px;
-    background:var(--bg3);border:1px solid var(--border);
-    border-radius:var(--radius3);padding:10px 14px;margin-top:12px;
-  }
-  .candidates-icon{font-size:1.1rem}
-  .candidates-text{font-size:.82rem;color:var(--text2);flex:1}
-  .candidates-count{
-    font-size:.9rem;font-weight:800;color:var(--accent2);
-    background:rgba(108,99,255,.15);padding:2px 10px;border-radius:20px;
-  }
+.btn-win{background:linear-gradient(135deg,#065f46,#10b981);color:#fff;box-shadow:0 4px 18px rgba(16,185,129,.35);grid-column:1/-1}
+.btn-win:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(16,185,129,.5)}
+.btn-wrong{background:rgba(27,31,53,.9);color:var(--text2);border:1px solid var(--border)}
+.btn-wrong:hover{color:var(--text);border-color:var(--border3)}
+.btn-ghost{background:transparent;color:var(--text3);border:1px solid var(--border);font-size:.85rem;padding:10px 18px}
+.btn-ghost:hover{color:var(--text2);border-color:var(--border2)}
+.btn-reveal-final{background:linear-gradient(135deg,#86198f,#f472b6);color:#fff;box-shadow:0 4px 18px rgba(244,114,182,.3);width:100%}
+.btn-reveal-final:hover{transform:translateY(-2px)}
 
-  /* Question */
-  .q-number{
-    display:inline-block;font-size:.75rem;font-weight:700;
-    color:var(--accent2);background:rgba(108,99,255,.15);
-    padding:3px 12px;border-radius:20px;margin-bottom:14px;
-    letter-spacing:.5px;
-  }
-  .q-text{
-    font-size:clamp(1rem,3vw,1.2rem);font-weight:700;
-    line-height:1.5;margin-bottom:20px;color:var(--text);
-  }
-  .q-hint{font-size:.8rem;color:var(--text3);margin-top:8px;font-style:italic}
+/* ── Progress ── */
+.prog-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.prog-label{font-size:.74rem;font-weight:700;color:var(--text3);letter-spacing:.5px;text-transform:uppercase}
+.prog-num{font-size:.78rem;font-weight:700;color:var(--accent2);background:rgba(124,111,255,.12);padding:3px 10px;border-radius:20px}
+.prog-track{height:5px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden}
+.prog-fill{
+  height:100%;border-radius:3px;transition:width .6s cubic-bezier(.4,0,.2,1);
+  background:linear-gradient(90deg,var(--accent),var(--accent4));
+  box-shadow:0 0 10px rgba(124,111,255,.6);
+  position:relative;
+}
+.prog-fill::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);
+  animation:shimmer 2s infinite;
+}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
 
-  /* History */
-  .history-header{
-    display:flex;align-items:center;justify-content:space-between;
-    margin-bottom:12px;
-  }
-  .history-title{font-size:.85rem;font-weight:700;color:var(--text2);letter-spacing:.3px}
-  .history-list{display:flex;flex-direction:column;gap:6px;max-height:180px;overflow-y:auto;
-    scrollbar-width:thin;scrollbar-color:var(--border) transparent;
-  }
-  .history-item{
-    display:flex;align-items:center;gap:10px;
-    background:var(--bg3);border-radius:var(--radius3);
-    padding:8px 12px;
-    border-left:3px solid transparent;
-    font-size:.82rem;
-    animation:slideIn .2s ease;
-  }
-  @keyframes slideIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
-  .history-item.yes{border-color:var(--yes)}
-  .history-item.no{border-color:var(--no)}
-  .history-item.maybe{border-color:var(--maybe)}
-  .history-q{flex:1;color:var(--text2)}
-  .history-badge{font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:10px;flex-shrink:0}
-  .badge-yes{background:rgba(34,197,94,.15);color:#22c55e}
-  .badge-no{background:rgba(239,68,68,.15);color:#ef4444}
-  .badge-maybe{background:rgba(234,179,8,.15);color:#eab308}
+/* candidate meter */
+.cand-row{display:flex;align-items:center;gap:10px;margin-top:12px}
+.cand-icon{font-size:1rem}
+.cand-label{font-size:.8rem;color:var(--text3);flex:1}
+.cand-track{height:4px;flex:2;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden}
+.cand-fill{height:100%;background:linear-gradient(90deg,var(--accent3),var(--accent6));border-radius:2px;transition:width .5s ease}
+.cand-num{font-size:.82rem;font-weight:800;color:var(--accent3);min-width:28px;text-align:right}
 
-  /* Guess Screen */
-  .guess-reveal{
-    text-align:center;padding:32px 24px;
-    background:var(--card);border:1px solid var(--border);
-    border-radius:var(--radius);box-shadow:var(--glow);
-    position:relative;overflow:hidden;
-  }
-  .guess-reveal::before{
-    content:'';position:absolute;inset:0;
-    background:radial-gradient(ellipse at 50% 0%,rgba(108,99,255,.12),transparent 60%);
-    pointer-events:none;
-  }
-  .guess-badge{
-    display:inline-flex;align-items:center;gap:6px;
-    background:rgba(108,99,255,.15);border:1px solid rgba(108,99,255,.3);
-    padding:4px 14px;border-radius:20px;
-    font-size:.75rem;font-weight:700;color:var(--accent2);
-    margin-bottom:16px;letter-spacing:.5px;
-  }
-  .guess-spinner{font-size:3rem;display:block;margin-bottom:12px;animation:spin 1s linear infinite}
-  @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
-  .guess-name{
-    font-size:clamp(1.8rem,5vw,2.8rem);font-weight:900;
-    margin-bottom:8px;letter-spacing:-1px;line-height:1.1;
-  }
-  .guess-name span{
-    background:linear-gradient(135deg,var(--accent2),var(--accent4),var(--accent5));
-    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  }
-  .guess-country{
-    display:inline-flex;align-items:center;gap:6px;
-    color:var(--text2);font-size:.9rem;margin-bottom:20px;
-    background:var(--bg3);border:1px solid var(--border);
-    padding:6px 16px;border-radius:20px;
-  }
-  .guess-confidence{
-    display:flex;align-items:center;justify-content:center;gap:8px;
-    margin-bottom:24px;
-  }
-  .conf-label{font-size:.82rem;color:var(--text3)}
-  .conf-dots{display:flex;gap:4px}
-  .conf-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .3s}
-  .conf-dot.active{background:var(--accent)}
-  .conf-pct{font-size:.9rem;font-weight:700;color:var(--accent2)}
+/* ── Question ── */
+.q-tag{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:.7rem;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+  color:var(--accent2);background:rgba(124,111,255,.13);
+  border:1px solid rgba(124,111,255,.2);
+  padding:3px 12px;border-radius:20px;margin-bottom:14px;
+}
+.q-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:blink 1.2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.q-text{font-size:clamp(1.05rem,3vw,1.25rem);font-weight:700;line-height:1.5;color:var(--text);margin-bottom:6px}
+.q-hint{font-size:.76rem;color:var(--text3);font-style:italic;line-height:1.4}
 
-  .guess-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .btn-win{
-    background:linear-gradient(135deg,#059669,#10b981);color:#fff;
-    box-shadow:0 4px 15px rgba(16,185,129,.3);
-    grid-column:1/-1;
-  }
-  .btn-win:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(16,185,129,.4)}
-  .btn-wrong{background:var(--card2);color:var(--text2);border:1px solid var(--border)}
-  .btn-wrong:hover{color:var(--text);border-color:var(--border2)}
+/* ── History ── */
+.hist-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.hist-title{font-size:.76rem;font-weight:700;color:var(--text3);letter-spacing:.5px;text-transform:uppercase}
+.hist-list{display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.hi{
+  display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:var(--r3);
+  background:rgba(11,13,26,.6);border-left:3px solid transparent;
+  font-size:.79rem;animation:slideIn .2s ease;
+}
+@keyframes slideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+.hi-yes{border-color:var(--yes)}
+.hi-prob{border-color:var(--prob)}
+.hi-dk{border-color:var(--maybe)}
+.hi-probnot{border-color:var(--probnot)}
+.hi-no{border-color:var(--no)}
+.hi-q{flex:1;color:var(--text2);line-height:1.4}
+.hi-badge{font-size:.66rem;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap;flex-shrink:0}
+.b-yes{background:rgba(34,197,94,.13);color:#22c55e}
+.b-prob{background:rgba(134,239,172,.13);color:#86efac}
+.b-dk{background:rgba(234,179,8,.13);color:#eab308}
+.b-probnot{background:rgba(249,115,22,.13);color:#f97316}
+.b-no{background:rgba(239,68,68,.13);color:#ef4444}
 
-  /* Win Screen */
-  .win-screen{text-align:center;padding:40px 24px}
-  .win-confetti{font-size:4rem;margin-bottom:16px;display:block;animation:bounce .6s ease infinite alternate}
-  @keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-12px)}}
-  .win-title{font-size:2rem;font-weight:900;margin-bottom:8px}
-  .win-place{
-    font-size:1.4rem;font-weight:700;margin-bottom:20px;
-    background:linear-gradient(135deg,var(--accent2),var(--accent4));
-    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  }
-  .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}
-  .stat-card{
-    background:var(--bg3);border:1px solid var(--border);
-    border-radius:var(--radius2);padding:14px;text-align:center;
-  }
-  .stat-val{font-size:1.5rem;font-weight:900;color:var(--accent2)}
-  .stat-label{font-size:.72rem;color:var(--text3);margin-top:3px;font-weight:600;letter-spacing:.3px}
+/* ── Guess Screen ── */
+.guess-header{text-align:center;padding:32px 24px 28px}
+.guess-header::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(124,111,255,.14),transparent 65%);
+  pointer-events:none;
+}
+.thinking-anim{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:18px}
+.t-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:tdot .7s ease-in-out infinite}
+.t-dot:nth-child(2){animation-delay:.12s;background:var(--accent4)}
+.t-dot:nth-child(3){animation-delay:.24s;background:var(--accent3)}
+@keyframes tdot{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(-8px);opacity:1}}
+.guess-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(124,111,255,.13);border:1px solid rgba(124,111,255,.25);padding:4px 14px;border-radius:20px;font-size:.72rem;font-weight:700;color:var(--accent2);margin-bottom:14px;letter-spacing:.4px}
+.guess-name{font-size:clamp(1.9rem,5.5vw,3rem);font-weight:900;letter-spacing:-1.5px;line-height:1;margin-bottom:10px}
+.guess-name span{background:linear-gradient(135deg,var(--accent2),var(--accent4),var(--accent5));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.guess-loc{display:inline-flex;align-items:center;gap:6px;color:var(--text2);font-size:.88rem;background:rgba(255,255,255,.05);border:1px solid var(--border);padding:6px 16px;border-radius:20px;margin-bottom:20px}
 
-  /* Fail screen */
-  .fail-emoji{font-size:4rem;margin-bottom:12px;display:block;animation:shake .5s ease}
-  @keyframes shake{0%,100%{transform:rotate(0)}25%{transform:rotate(-5deg)}75%{transform:rotate(5deg)}}
-  .reveal-input-wrap{position:relative;margin:16px 0}
-  .reveal-input{
-    width:100%;background:var(--bg3);border:1px solid var(--border);
-    color:var(--text);padding:14px 16px;border-radius:var(--radius2);
-    font-size:1rem;outline:none;transition:border-color .2s;
-  }
-  .reveal-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,99,255,.15)}
-  .reveal-input::placeholder{color:var(--text3)}
-  .btn-reveal{
-    background:linear-gradient(135deg,var(--accent4),#ec4899);color:#fff;
-    box-shadow:0 4px 15px rgba(244,114,182,.3);width:100%;
-  }
-  .btn-reveal:hover{transform:translateY(-2px)}
+/* confidence bar */
+.conf-wrap{margin-bottom:24px}
+.conf-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px}
+.conf-label{font-size:.76rem;color:var(--text3);font-weight:600;letter-spacing:.3px}
+.conf-pct{font-size:1rem;font-weight:900;color:var(--accent2)}
+.conf-track{height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;max-width:280px;margin:0 auto}
+.conf-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent4));transition:width .8s cubic-bezier(.4,0,.2,1);box-shadow:0 0 12px rgba(124,111,255,.5)}
 
-  /* Suggestion chips */
-  .suggestions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
-  .chip{
-    background:var(--bg3);border:1px solid var(--border);
-    color:var(--text2);padding:5px 12px;border-radius:20px;
-    font-size:.78rem;cursor:pointer;transition:all .2s;font-weight:500;
-  }
-  .chip:hover{background:var(--card2);color:var(--text);border-color:var(--accent);transform:translateY(-1px)}
+.guess-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
-  /* Toast */
-  #toast{
-    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);
-    background:var(--card);border:1px solid var(--border);
-    color:var(--text);padding:12px 20px;border-radius:var(--radius2);
-    font-size:.9rem;font-weight:600;white-space:nowrap;
-    box-shadow:0 8px 32px rgba(0,0,0,.4);z-index:1000;
-    transition:transform .3s cubic-bezier(.4,0,.2,1);pointer-events:none;
-  }
-  #toast.show{transform:translateX(-50%) translateY(0)}
+/* ── Win Screen ── */
+.win-body{text-align:center;padding:36px 24px}
+.win-gfx{
+  font-size:4.5rem;margin-bottom:16px;display:block;
+  animation:winBounce .5s cubic-bezier(.36,.07,.19,.97) infinite alternate;
+  filter:drop-shadow(0 0 20px rgba(124,111,255,.4));
+}
+@keyframes winBounce{from{transform:translateY(0) scale(1)}to{transform:translateY(-14px) scale(1.05)}}
+.win-h{font-size:1.7rem;font-weight:900;margin-bottom:6px}
+.win-place-name{
+  font-size:1.5rem;font-weight:800;margin-bottom:22px;
+  background:linear-gradient(135deg,var(--accent2),var(--accent4));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.stat-c{background:rgba(11,13,26,.7);border:1px solid var(--border);border-radius:var(--r2);padding:14px 8px;text-align:center}
+.stat-v{font-size:1.6rem;font-weight:900;background:linear-gradient(135deg,var(--accent2),var(--accent4));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-l{font-size:.68rem;color:var(--text3);margin-top:3px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
 
-  /* Loader */
-  .thinking{
-    display:flex;align-items:center;justify-content:center;gap:6px;
-    color:var(--text2);font-size:.9rem;padding:12px;
-  }
-  .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:dotBounce .6s ease-in-out infinite}
-  .dot:nth-child(2){animation-delay:.1s}
-  .dot:nth-child(3){animation-delay:.2s}
-  @keyframes dotBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+/* particles */
+.particles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.p{position:absolute;width:5px;height:5px;border-radius:50%;animation:pfloat linear infinite}
+@keyframes pfloat{from{transform:translateY(100px) rotate(0deg);opacity:1}to{transform:translateY(-400px) rotate(720deg);opacity:0}}
 
-  /* How to play */
-  .how-to{
-    background:var(--card);border:1px solid var(--border);
-    border-radius:var(--radius);padding:20px;
-  }
-  .how-title{font-size:.9rem;font-weight:700;color:var(--text2);margin-bottom:14px;letter-spacing:.3px}
-  .steps{display:flex;flex-direction:column;gap:10px}
-  .step{display:flex;align-items:flex-start;gap:12px}
-  .step-num{
-    width:26px;height:26px;border-radius:50%;flex-shrink:0;
-    background:linear-gradient(135deg,var(--accent),#8b5cf6);
-    display:flex;align-items:center;justify-content:center;
-    font-size:.72rem;font-weight:800;color:#fff;
-  }
-  .step-text{font-size:.85rem;color:var(--text2);line-height:1.5;padding-top:3px}
-  .step-text strong{color:var(--text)}
+/* ── Reveal Screen ── */
+.reveal-wrap{padding:12px 0}
+.reveal-input{
+  width:100%;background:rgba(11,13,26,.9);border:1px solid var(--border);
+  color:var(--text);padding:14px 16px;border-radius:var(--r2);
+  font-size:.95rem;outline:none;transition:all .2s;margin:14px 0 8px;
+}
+.reveal-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,111,255,.15)}
+.reveal-input::placeholder{color:var(--text3)}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
+.chip{
+  background:rgba(21,24,40,.9);border:1px solid var(--border);
+  color:var(--text2);padding:5px 12px;border-radius:20px;
+  font-size:.76rem;cursor:pointer;transition:all .2s;font-weight:600;
+}
+.chip:hover{background:rgba(124,111,255,.12);color:var(--text);border-color:var(--accent);transform:translateY(-1px)}
 
-  /* Leaderboard-style answer summary */
-  .answer-summary{
-    background:var(--bg3);border:1px solid var(--border);
-    border-radius:var(--radius2);padding:14px;margin-top:4px;
-  }
-  .as-title{font-size:.78rem;font-weight:700;color:var(--text3);letter-spacing:.4px;margin-bottom:10px}
-  .as-row{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--bg)}
-  .as-row:last-child{border-bottom:none}
-  .as-q{flex:1;font-size:.78rem;color:var(--text2)}
-  .as-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+/* ── How To Play ── */
+.how-head{font-size:.75rem;font-weight:700;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:14px}
+.steps{display:flex;flex-direction:column;gap:11px}
+.step{display:flex;align-items:flex-start;gap:12px}
+.step-n{
+  width:28px;height:28px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--accent),#8b5cf6);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.72rem;font-weight:800;color:#fff;box-shadow:0 2px 10px rgba(124,111,255,.4);
+}
+.step-t{font-size:.84rem;color:var(--text2);line-height:1.55;padding-top:4px}
+.step-t strong{color:var(--text)}
 
-  /* Footer */
-  footer{
-    text-align:center;padding:16px;
-    border-top:1px solid var(--border);
-    font-size:.78rem;color:var(--text3);
-    background:rgba(13,15,26,.5);
-  }
-  footer a{color:var(--accent2);text-decoration:none}
-  footer a:hover{text-decoration:underline}
+/* ── Answer Key ── */
+.ans-key{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:14px 0}
+.ak{background:rgba(11,13,26,.7);border-radius:var(--r3);padding:10px 6px;text-align:center;border:1px solid var(--border)}
+.ak-dot{width:10px;height:10px;border-radius:50%;margin:0 auto 5px}
+.ak-label{font-size:.68rem;font-weight:700;color:var(--text2)}
 
-  /* Scrollbar */
-  ::-webkit-scrollbar{width:4px;height:4px}
-  ::-webkit-scrollbar-track{background:transparent}
-  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-  ::-webkit-scrollbar-thumb:hover{background:var(--border2)}
+/* ── Toast ── */
+#toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);
+  background:rgba(21,24,40,.97);border:1px solid var(--border2);
+  color:var(--text);padding:11px 20px;border-radius:var(--r2);
+  font-size:.87rem;font-weight:600;white-space:nowrap;
+  box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:1000;
+  transition:transform .35s cubic-bezier(.16,1,.3,1);pointer-events:none;
+  backdrop-filter:blur(16px);
+}
+#toast.show{transform:translateX(-50%) translateY(0)}
 
-  @media(max-width:480px){
-    header{padding:14px 16px}
-    .logo-text{font-size:1.15rem}
-    .stat-pill{display:none}
-    main{padding:16px 12px 32px}
-    .hero{padding:32px 20px}
-    .hero-emoji{font-size:4rem}
-    .game-card{padding:18px}
-    .answer-btns{grid-template-columns:1fr 1fr 1fr}
-    .btn{padding:12px 16px;font-size:.9rem}
-    .guess-actions{grid-template-columns:1fr}
-    .btn-win{grid-column:auto}
-    .stats-grid{grid-template-columns:repeat(3,1fr)}
-  }
+/* ── Footer ── */
+footer{
+  text-align:center;padding:14px;border-top:1px solid var(--border);
+  font-size:.74rem;color:var(--text3);background:rgba(7,8,15,.7);
+  backdrop-filter:blur(12px);
+}
+footer a{color:var(--accent2);text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:var(--border2)}
+
+/* ── Responsive ── */
+@media(max-width:520px){
+  header{padding:12px 14px}
+  .logo-text{font-size:1.1rem}
+  .hdr-pill{padding:4px 9px;font-size:.72rem}
+  main{padding:16px 10px 36px;gap:14px}
+  .hero{padding:32px 16px 28px}
+  .hero-globe{font-size:4rem}
+  .card{padding:16px}
+  .feature-grid{grid-template-columns:1fr 1fr}
+  .feat:nth-child(3){grid-column:1/-1}
+  .answer-grid{grid-template-columns:1fr 1fr}
+  .guess-actions{grid-template-columns:1fr}
+  .btn-win{grid-column:auto}
+  .stats-row{gap:7px}
+  .stat-v{font-size:1.3rem}
+  .ans-key{grid-template-columns:1fr 1fr}
+  .ans-key .ak:last-child{grid-column:1/-1}
+}
 </style>
 </head>
 <body>
-<div class="bg-orbs">
-  <div class="orb orb1"></div>
-  <div class="orb orb2"></div>
-  <div class="orb orb3"></div>
+<div class="bg-wrap">
+  <div class="bg-grid"></div>
+  <div class="orb o1"></div><div class="orb o2"></div>
+  <div class="orb o3"></div><div class="orb o4"></div>
+  <div class="noise"></div>
 </div>
-
 <div id="app">
-  <header>
-    <div class="logo">
-      <div class="logo-icon">🌍</div>
-      <div>
-        <div class="logo-text">Guess<span>MyPlace</span> <span class="logo-badge">v1.0</span></div>
-      </div>
+<header>
+  <div class="logo">
+    <div class="logo-icon">🌍</div>
+    <span class="logo-text">Guess<em>MyPlace</em><span class="logo-v">v1.0</span></span>
+  </div>
+  <div class="hdr-stats">
+    <div class="hdr-pill">🎮 <strong id="hdr-g">0</strong></div>
+    <div class="hdr-pill">🏆 <strong id="hdr-w">0</strong></div>
+    <div class="hdr-pill">🔥 <strong id="hdr-s">0</strong></div>
+  </div>
+</header>
+
+<main>
+
+<!-- ═══ WELCOME ═══ -->
+<div id="s-welcome" class="screen active">
+  <div class="card card-glow hero">
+    <span class="hero-globe">🌍</span>
+    <h1>Think of a <span class="g1">Place.</span><br/>We'll <span class="g2">Guess it!</span></h1>
+    <p class="hero-sub">Any landmark, city, mountain, desert, island or wonder — our AI will figure it out through clever Yes/No questions.</p>
+    <button class="btn btn-start" onclick="startGame()">🚀 &nbsp;Start Guessing</button>
+  </div>
+
+  <div class="card">
+    <div class="how-head">🎮 HOW TO PLAY</div>
+    <div class="steps">
+      <div class="step"><div class="step-n">1</div><div class="step-t"><strong>Think of any famous place</strong> in the world — landmark, natural wonder, city, island…</div></div>
+      <div class="step"><div class="step-n">2</div><div class="step-t"><strong>Answer each question</strong> as honestly as possible using the 5 response options below.</div></div>
+      <div class="step"><div class="step-n">3</div><div class="step-t"><strong>We'll guess your place</strong> — our engine narrows it down fast. Usually under 15 questions!</div></div>
     </div>
-    <div class="header-right">
-      <div class="stat-pill">🎮 Games: <strong id="hdr-games">0</strong></div>
-      <div class="stat-pill">🏆 Wins: <strong id="hdr-wins">0</strong></div>
+    <div class="ans-key" style="margin-top:16px">
+      <div class="ak"><div class="ak-dot" style="background:#22c55e"></div><div class="ak-label">Yes</div></div>
+      <div class="ak"><div class="ak-dot" style="background:#86efac"></div><div class="ak-label">Probably</div></div>
+      <div class="ak"><div class="ak-dot" style="background:#eab308"></div><div class="ak-label">I Don't Know</div></div>
+      <div class="ak"><div class="ak-dot" style="background:#f97316"></div><div class="ak-label">Prob. Not</div></div>
+      <div class="ak"><div class="ak-dot" style="background:#ef4444"></div><div class="ak-label">No</div></div>
     </div>
-  </header>
+  </div>
 
-  <main>
-    <!-- Welcome Screen -->
-    <div id="screen-welcome" class="screen active">
-      <div class="hero">
-        <span class="hero-emoji">🌍</span>
-        <h1>Think of a <span>Place.</span><br/>We'll guess it!</h1>
-        <p>Think of any famous place — a landmark, city, natural wonder, or hidden gem — and our AI will guess it with Yes/No questions.</p>
-        <button class="btn btn-primary" onclick="startGame()">
-          <span>🚀</span> Start Game
-        </button>
-      </div>
-      <div class="features">
-        <div class="feature">
-          <div class="feature-icon">🧠</div>
-          <div class="feature-title">Smart AI</div>
-          <div class="feature-desc">Logical deduction engine</div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">🌐</div>
-          <div class="feature-title">Global Places</div>
-          <div class="feature-desc">Landmarks to natural wonders</div>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">⚡</div>
-          <div class="feature-title">Fast Guessing</div>
-          <div class="feature-desc">Usually under 20 questions</div>
-        </div>
-      </div>
-      <div class="how-to">
-        <div class="how-title">📋 HOW TO PLAY</div>
-        <div class="steps">
-          <div class="step"><div class="step-num">1</div><div class="step-text"><strong>Think of a place</strong> — any famous location, landmark, or natural wonder in the world.</div></div>
-          <div class="step"><div class="step-num">2</div><div class="step-text"><strong>Answer Yes/No/Maybe</strong> — respond to each question honestly.</div></div>
-          <div class="step"><div class="step-num">3</div><div class="step-text"><strong>We'll guess it!</strong> — our AI narrows down and reveals the place.</div></div>
-        </div>
-      </div>
+  <div class="card">
+    <div class="feature-grid">
+      <div class="feat"><div class="feat-i">🧠</div><div class="feat-t">Bayesian AI</div><div class="feat-d">Probabilistic scoring engine</div></div>
+      <div class="feat"><div class="feat-i">🌐</div><div class="feat-t">Global Places</div><div class="feat-d">Wonders from every continent</div></div>
+      <div class="feat"><div class="feat-i">⚡</div><div class="feat-t">Fast</div><div class="feat-d">Usually under 15 questions</div></div>
     </div>
-
-    <!-- Game Screen -->
-    <div id="screen-game" class="screen">
-      <div class="game-card">
-        <div class="progress-header">
-          <div class="progress-label">⚡ PROGRESS</div>
-          <div class="progress-count" id="q-counter">Q1 / 20</div>
-        </div>
-        <div class="progress-track">
-          <div class="progress-fill" id="progress-fill" style="width:0%"></div>
-        </div>
-        <div class="candidates-bar">
-          <span class="candidates-icon">🎯</span>
-          <span class="candidates-text">Places remaining</span>
-          <span class="candidates-count" id="candidates-count">20</span>
-        </div>
-      </div>
-
-      <div class="game-card">
-        <div class="q-number" id="q-num-badge">QUESTION 1</div>
-        <div class="q-text" id="q-text">Loading question...</div>
-        <div class="q-hint" id="q-hint"></div>
-        <div class="answer-btns" style="margin-top:20px">
-          <button class="btn btn-yes" onclick="answer('yes')">✅ Yes</button>
-          <button class="btn btn-maybe" onclick="answer('maybe')">🤔 Maybe</button>
-          <button class="btn btn-no" onclick="answer('no')">❌ No</button>
-        </div>
-      </div>
-
-      <div class="game-card" id="history-card" style="display:none">
-        <div class="history-header">
-          <div class="history-title">📜 ANSWER HISTORY</div>
-          <button class="btn btn-secondary btn-sm" onclick="resetGame()">🔄 New Game</button>
-        </div>
-        <div class="history-list" id="history-list"></div>
-      </div>
-    </div>
-
-    <!-- Guess Screen -->
-    <div id="screen-guess" class="screen">
-      <div class="guess-reveal">
-        <div class="guess-badge">💡 MY GUESS</div>
-        <div class="guess-name"><span id="guess-name">?</span></div>
-        <div><span class="guess-country">📍 <span id="guess-country">Unknown</span></span></div>
-        <div class="guess-confidence">
-          <span class="conf-label">Confidence:</span>
-          <div class="conf-dots" id="conf-dots"></div>
-          <span class="conf-pct" id="conf-pct">0%</span>
-        </div>
-        <div class="guess-actions">
-          <button class="btn btn-win" onclick="correctGuess()">🎉 Yes, that's it!</button>
-          <button class="btn btn-wrong" onclick="wrongGuess()">❌ Not quite</button>
-          <button class="btn btn-secondary" onclick="resetGame()">🔄 New Game</button>
-        </div>
-      </div>
-
-      <div class="game-card" id="guess-history-wrap">
-        <div class="history-header">
-          <div class="history-title">📜 YOUR ANSWERS</div>
-        </div>
-        <div class="history-list" id="guess-history"></div>
-      </div>
-    </div>
-
-    <!-- Win Screen -->
-    <div id="screen-win" class="screen">
-      <div class="game-card win-screen">
-        <span class="win-confetti" id="win-emoji">🎉</span>
-        <div class="win-title">I got it right!</div>
-        <div class="win-place" id="win-place">The Eiffel Tower</div>
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-val" id="stat-questions">0</div>
-            <div class="stat-label">QUESTIONS</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-val" id="stat-conf">0%</div>
-            <div class="stat-label">CONFIDENCE</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-val" id="stat-total">0</div>
-            <div class="stat-label">TOTAL GAMES</div>
-          </div>
-        </div>
-        <div class="answer-summary" id="win-summary">
-          <div class="as-title">KEY ANSWERS</div>
-          <div id="win-summary-rows"></div>
-        </div>
-        <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px">
-          <button class="btn btn-primary" onclick="startGame()">🚀 Play Again</button>
-          <button class="btn btn-secondary" onclick="showScreen('screen-welcome')">🏠 Home</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Give Up / Reveal Screen -->
-    <div id="screen-reveal" class="screen">
-      <div class="game-card">
-        <span class="fail-emoji">😅</span>
-        <div class="win-title" style="font-size:1.6rem;margin-bottom:6px">You stumped me!</div>
-        <p style="color:var(--text2);font-size:.9rem;margin-bottom:16px">I couldn't figure out your place. Would you like to tell me what it was?</p>
-        <div class="reveal-input-wrap">
-          <input type="text" class="reveal-input" id="reveal-input" placeholder="What place were you thinking of?" oninput="onRevealInput()"/>
-        </div>
-        <div id="reveal-suggestions" class="suggestions"></div>
-        <button class="btn btn-reveal" onclick="revealPlace()" style="margin-bottom:10px">🌍 Reveal the Place!</button>
-        <button class="btn btn-secondary" onclick="resetGame()">🔄 Try Another Place</button>
-      </div>
-    </div>
-  </main>
-
-  <footer>
-    🌍 <strong>GuessMyPlace</strong> v1.0.0 — Open Source &bull; 
-    <a href="https://github.com" target="_blank">GitHub</a> &bull;
-    Made with ❤️ for the world
-  </footer>
+  </div>
 </div>
 
+<!-- ═══ GAME ═══ -->
+<div id="s-game" class="screen">
+  <div class="card">
+    <div class="prog-head">
+      <span class="prog-label">⚡ Progress</span>
+      <span class="prog-num" id="prog-num">Q1 / 20</span>
+    </div>
+    <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="cand-row">
+      <span class="cand-icon">🎯</span>
+      <span class="cand-label">Candidates remaining</span>
+      <div class="cand-track"><div class="cand-fill" id="cand-fill" style="width:100%"></div></div>
+      <span class="cand-num" id="cand-num">20</span>
+    </div>
+  </div>
+
+  <div class="card card-glow">
+    <div class="q-tag"><span class="q-dot"></span><span id="q-badge">QUESTION 1</span></div>
+    <div class="q-text" id="q-text">Loading…</div>
+    <div class="q-hint" id="q-hint"></div>
+
+    <div class="answer-grid">
+      <button class="btn abtn btn-yes"    onclick="answer('yes')">   ✅ Yes      <span class="alabel">Definitely</span></button>
+      <button class="btn abtn btn-prob"   onclick="answer('prob')">  🟢 Probably <span class="alabel">Most likely</span></button>
+      <button class="btn abtn btn-dk"     onclick="answer('dk')">    🤔 I Don't Know <span class="alabel">Uncertain</span></button>
+      <button class="btn abtn btn-probnot"onclick="answer('probnot')">🟠 Probably Not<span class="alabel">Unlikely</span></button>
+      <button class="btn abtn btn-no"     onclick="answer('no')">    ❌ No       <span class="alabel">Definitely not</span></button>
+    </div>
+  </div>
+
+  <div class="card" id="hist-card" style="display:none">
+    <div class="hist-head">
+      <span class="hist-title">📜 Answer History</span>
+      <button class="btn btn-ghost" onclick="resetGame()">🔄 New</button>
+    </div>
+    <div class="hist-list" id="hist-list"></div>
+  </div>
+</div>
+
+<!-- ═══ GUESS ═══ -->
+<div id="s-guess" class="screen">
+  <div class="card card-glow guess-header">
+    <div class="thinking-anim"><div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div></div>
+    <div class="guess-badge">💡 MY GUESS IS…</div>
+    <div class="guess-name"><span id="g-name">?</span></div>
+    <div><span class="guess-loc">📍 <span id="g-loc">Unknown</span></span></div>
+    <div class="conf-wrap">
+      <div class="conf-row">
+        <span class="conf-label">CONFIDENCE</span>
+        <span class="conf-pct" id="g-pct">0%</span>
+      </div>
+      <div class="conf-track"><div class="conf-fill" id="g-conf-fill" style="width:0%"></div></div>
+    </div>
+    <div class="guess-actions">
+      <button class="btn btn-win"   onclick="correctGuess()">🎉 Yes, that's it!</button>
+      <button class="btn btn-wrong" onclick="wrongGuess()">❌ Not quite…</button>
+      <button class="btn btn-ghost" onclick="resetGame()" style="grid-column:1/-1">🔄 Give up & restart</button>
+    </div>
+  </div>
+  <div class="card" id="g-hist-wrap">
+    <div class="hist-head"><span class="hist-title">📜 Your Answers</span></div>
+    <div class="hist-list" id="g-hist"></div>
+  </div>
+</div>
+
+<!-- ═══ WIN ═══ -->
+<div id="s-win" class="screen">
+  <div class="card card-glow win-body" style="position:relative">
+    <div class="particles" id="particles"></div>
+    <span class="win-gfx" id="win-gfx">🎉</span>
+    <div class="win-h">I got it right! 🧠</div>
+    <div class="win-place-name" id="win-pname">–</div>
+    <div class="stats-row">
+      <div class="stat-c"><div class="stat-v" id="st-q">0</div><div class="stat-l">Questions</div></div>
+      <div class="stat-c"><div class="stat-v" id="st-c">0%</div><div class="stat-l">Confidence</div></div>
+      <div class="stat-c"><div class="stat-v" id="st-s">0</div><div class="stat-l">Streak 🔥</div></div>
+    </div>
+    <button class="btn btn-start" onclick="startGame()" style="margin-bottom:10px">🚀 Play Again</button>
+    <button class="btn btn-ghost" style="width:100%" onclick="showS('s-welcome')">🏠 Home</button>
+  </div>
+</div>
+
+<!-- ═══ REVEAL (failed) ═══ -->
+<div id="s-reveal" class="screen">
+  <div class="card card-glow">
+    <div style="font-size:3.5rem;margin-bottom:12px;animation:float 3s ease-in-out infinite">😅</div>
+    <div class="win-h" style="font-size:1.5rem;margin-bottom:8px">You stumped me!</div>
+    <p style="color:var(--text2);font-size:.88rem;line-height:1.6;margin-bottom:4px">I ran out of ideas! Would you like to reveal the place so we can learn from it?</p>
+    <div class="reveal-wrap">
+      <input type="text" class="reveal-input" id="reveal-in" placeholder="What place were you thinking of?" oninput="onReveal()"/>
+      <div class="chips" id="reveal-chips"></div>
+      <button class="btn btn-reveal-final" onclick="doReveal()">🌍 Reveal the Place</button>
+      <button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="resetGame()">🔄 Try Another Place</button>
+    </div>
+  </div>
+</div>
+
+</main>
+<footer>🌍 <strong>GuessMyPlace</strong> v1.0.0 — Open Source &bull; <a href="https://github.com" target="_blank">GitHub</a> &bull; Made with ❤️</footer>
+</div>
 <div id="toast"></div>
 
 <script>
-// ============================================================
-// GuessMyPlace — Core Engine v1.0.0
-// ============================================================
+// ═══════════════════════════════════════════════════════════
+//  GuessMyPlace v1.0.0 — Enhanced Bayesian Engine
+// ═══════════════════════════════════════════════════════════
+
+// Answer weights for Bayesian scoring
+// yes=1, prob=0.75, dk=0.5, probnot=0.25, no=0
+const W = { yes:1, prob:.75, dk:.5, probnot:.25, no:0 };
+
+// Attribute true value required:
+// For attribute=true: higher answer weight = more likely match
+// For attribute=false: higher answer weight = less likely match (inverted)
+
 const STATE = {
-  places: [],
-  questions: [],
-  candidates: [],
-  asked: [],
-  answers: {},
-  qIndex: 0,
-  maxQ: 20,
-  gamesPlayed: 0,
-  gamesWon: 0,
-  currentGuess: null,
-  dataLoaded: false
+  places:[], questions:[],
+  candidates:[],   // {place, prob} — Bayesian probability objects
+  asked:[], answers:{},
+  qIdx:0, maxQ:20,
+  games:0, wins:0, streak:0,
+  guess:null, dataOk:false,
+  totalPlaces:0
 };
 
-// ── Load Data ─────────────────────────────────────────────
-async function loadData() {
-  try {
-    const res = await fetch('./data/places.json');
-    if (!res.ok) throw new Error('fetch failed');
-    const data = await res.json();
-    STATE.places = data.places;
-    STATE.questions = data.questions;
-    STATE.dataLoaded = true;
-  } catch (e) {
-    // Fallback: embedded minimal data for demo purposes
-    console.warn('data/places.json not found — using embedded fallback');
-    loadFallback();
+// ── Load Data ────────────────────────────────────────────
+async function loadData(){
+  try{
+    const r = await fetch('./data/places.json');
+    if(!r.ok) throw new Error();
+    const d = await r.json();
+    STATE.places = d.places;
+    STATE.questions = d.questions;
+    STATE.dataOk = true;
+    STATE.totalPlaces = d.places.length;
+  } catch(e){
+    console.warn('data/places.json not found — game may not work');
+    showToast('⚠️ Could not load places.json — check your file path');
   }
 }
 
-function loadFallback() {
-  // Minimal fallback so the game works even without the JSON file
-  STATE.places = window.__FALLBACK_PLACES__ || [];
-  STATE.questions = window.__FALLBACK_QUESTIONS__ || [];
-  STATE.dataLoaded = true;
-  if (!STATE.places.length) {
-    showToast('⚠️ Could not load place data. Make sure data/places.json is present.');
-  }
-}
-
-// ── Screen Management ────────────────────────────────────
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+// ── Screens ──────────────────────────────────────────────
+function showS(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  window.scrollTo({top: 0, behavior: 'smooth'});
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
 // ── Game Start ───────────────────────────────────────────
-function startGame() {
-  if (!STATE.dataLoaded || !STATE.places.length) {
-    showToast('⏳ Loading place data...');
-    loadData().then(startGame);
-    return;
-  }
-  STATE.candidates = [...STATE.places];
-  STATE.asked = [];
-  STATE.answers = {};
-  STATE.qIndex = 0;
-  STATE.currentGuess = null;
-  document.getElementById('history-list').innerHTML = '';
-  document.getElementById('history-card').style.display = 'none';
-  STATE.gamesPlayed++;
-  updateHeader();
-  showScreen('screen-game');
-  nextQuestion();
+function startGame(){
+  if(!STATE.dataOk || !STATE.places.length){ loadData().then(()=>setTimeout(startGame,200)); return; }
+  // Init uniform probabilities
+  const unif = 1 / STATE.places.length;
+  STATE.candidates = STATE.places.map(p => ({ place:p, prob:unif }));
+  STATE.asked = []; STATE.answers = {}; STATE.qIdx = 0; STATE.guess = null;
+  document.getElementById('hist-list').innerHTML = '';
+  document.getElementById('hist-card').style.display = 'none';
+  STATE.games++;
+  updateHdr();
+  showS('s-game');
+  nextQ();
 }
 
-// ── Question Engine ──────────────────────────────────────
-function nextQuestion() {
-  // Early guess: if candidates narrowed to 1 (100% sure) or <=2 with high confidence
-  if (STATE.candidates.length === 1) {
-    makeGuess(STATE.candidates[0], 97);
-    return;
-  }
-  if (STATE.candidates.length === 0) {
-    showScreen('screen-reveal');
-    return;
-  }
-  if (STATE.qIndex >= STATE.maxQ) {
-    // Best guess after max questions
-    const best = bestCandidate();
-    makeGuess(best.place, best.conf);
-    return;
-  }
-
-  // Confidence check at certain thresholds
-  if (STATE.qIndex >= 5 && STATE.candidates.length <= 2) {
-    const best = bestCandidate();
-    if (best.conf >= 85) { makeGuess(best.place, best.conf); return; }
-  }
-  if (STATE.qIndex >= 8 && STATE.candidates.length <= 3) {
-    const best = bestCandidate();
-    if (best.conf >= 80) { makeGuess(best.place, best.conf); return; }
-  }
-  if (STATE.qIndex >= 12) {
-    const best = bestCandidate();
-    if (best.conf >= 70) { makeGuess(best.place, best.conf); return; }
-  }
-
-  const q = pickBestQuestion();
-  if (!q) {
-    const best = bestCandidate();
-    makeGuess(best.place, best.conf);
-    return;
-  }
-
-  STATE.asked.push(q.id);
-  updateGameUI(q);
+// ── Bayesian Update ──────────────────────────────────────
+// P(place | answer) ∝ P(answer | place) × P(place)
+// P(answer | place) = how well the answer matches the attribute value
+function bayesUpdate(q, ans){
+  const w = W[ans]; // 0..1
+  STATE.candidates = STATE.candidates.map(({place, prob}) => {
+    const val = place.attributes[q.attribute];
+    // Likelihood: if val=true, likelihood = w; if val=false, likelihood = 1-w
+    // For 'dk' (0.5), both true and false get likelihood 0.5 — no update
+    const likelihood = val === true ? w : (1 - w);
+    // Add small epsilon to avoid zero probabilities (Laplace smoothing)
+    return { place, prob: prob * (likelihood + 0.001) };
+  });
+  normalize();
 }
 
-function pickBestQuestion() {
-  const available = STATE.questions.filter(q => !STATE.asked.includes(q.id));
-  if (!available.length) return null;
+function normalize(){
+  const total = STATE.candidates.reduce((s,c) => s + c.prob, 0);
+  if(total === 0) return;
+  STATE.candidates = STATE.candidates.map(c => ({ ...c, prob: c.prob / total }));
+}
 
-  let best = null, bestScore = -1;
-  for (const q of available) {
-    const score = questionScore(q);
-    if (score > bestScore) { bestScore = score; best = q; }
+// ── Question Picker (Entropy-based) ──────────────────────
+// Pick the question that maximizes expected information gain
+// = minimizes expected entropy after asking
+function pickBestQ(){
+  const avail = STATE.questions.filter(q => !STATE.asked.includes(q.id));
+  if(!avail.length) return null;
+
+  let best = null, bestIG = -1;
+  for(const q of avail){
+    const ig = infoGain(q);
+    if(ig > bestIG){ bestIG = ig; best = q; }
   }
   return best;
 }
 
-function questionScore(q) {
-  if (!STATE.candidates.length) return 0;
-  let yes = 0, no = 0;
-  for (const p of STATE.candidates) {
-    const val = p.attributes[q.attribute];
-    if (val === true) yes++;
-    else no++;
+function infoGain(q){
+  // Expected information gain = current entropy - expected posterior entropy
+  // We compute the expected entropy over all 5 answer choices
+  let totalExpectedEntropy = 0;
+
+  for(const ans of ['yes','prob','dk','probnot','no']){
+    const w = W[ans];
+    // Compute posterior probabilities if this answer were given
+    let posterior = STATE.candidates.map(({place, prob}) => {
+      const val = place.attributes[q.attribute];
+      const lk = val === true ? w : (1-w);
+      return prob * (lk + 0.001);
+    });
+    const pSum = posterior.reduce((s,p)=>s+p,0);
+    if(pSum < 1e-10) continue;
+    posterior = posterior.map(p=>p/pSum);
+
+    // Probability of this answer occurring
+    const pAns = pSum / STATE.candidates.reduce((s,c)=>s+c.prob,0) || 0.2;
+    // Entropy of posterior
+    const H = entropy(posterior);
+    totalExpectedEntropy += pAns * H;
   }
-  const total = STATE.candidates.length;
-  // Score = information gain (how close to 50/50 split)
-  const ratio = yes / total;
-  const balance = 1 - Math.abs(ratio - 0.5) * 2; // 1 = perfect split, 0 = useless
-  return balance * q.weight;
+
+  const currentH = entropy(STATE.candidates.map(c=>c.prob));
+  const ig = (currentH - totalExpectedEntropy) * (q.weight / 10);
+  return ig;
 }
 
-function applyAnswer(q, ans) {
-  // Filter candidates based on answer
-  STATE.candidates = STATE.candidates.filter(p => {
-    const val = p.attributes[q.attribute];
-    if (ans === 'yes')   return val === true;
-    if (ans === 'no')    return val === false;
-    if (ans === 'maybe') return true; // maybe = don't filter
-    return true;
-  });
+function entropy(probs){
+  return -probs.reduce((s,p) => {
+    if(p < 1e-10) return s;
+    return s + p * Math.log2(p);
+  }, 0);
 }
 
-function bestCandidate() {
-  if (!STATE.candidates.length) return { place: STATE.places[0], conf: 30 };
-  if (STATE.candidates.length === 1) return { place: STATE.candidates[0], conf: 97 };
+// ── Best Candidate ───────────────────────────────────────
+function bestCand(){
+  if(!STATE.candidates.length) return {place:STATE.places[0], prob:0.01};
+  return STATE.candidates.reduce((a,b) => b.prob > a.prob ? b : a);
+}
 
-  // Score each candidate by how well they match all our answers
-  let scores = STATE.candidates.map(p => {
-    let score = 0, total = 0;
-    for (const [qId, ans] of Object.entries(STATE.answers)) {
-      const q = STATE.questions.find(q => q.id === parseInt(qId));
-      if (!q) continue;
-      const val = p.attributes[q.attribute];
-      total++;
-      if (ans === 'yes' && val === true) score++;
-      else if (ans === 'no' && val === false) score++;
-      else if (ans === 'maybe') score += 0.5;
-    }
-    return { place: p, score: total > 0 ? score / total : 0 };
-  });
-
-  scores.sort((a, b) => b.score - a.score);
-  const top = scores[0];
+// ── Confidence Calculation ───────────────────────────────
+function calcConf(topProb){
+  // Convert raw probability to a human-readable confidence %
+  // Use a sigmoid-like scaling
   const n = STATE.candidates.length;
-  const conf = Math.min(95, Math.round(
-    (top.score * 70) + (n <= 1 ? 25 : n <= 2 ? 15 : n <= 3 ? 10 : n <= 5 ? 5 : 0)
-  ));
-  return { place: top.place, conf: Math.max(40, conf) };
+  // After Bayesian updates, top prob naturally reflects confidence
+  // We scale it to a 40–98% range for UX
+  const base = Math.min(98, Math.round(topProb * 100 * 1.6));
+  return Math.max(38, Math.min(98, base));
 }
 
-// ── UI Updates ───────────────────────────────────────────
-function updateGameUI(q) {
-  const num = STATE.qIndex + 1;
-  const pct = Math.round((num / STATE.maxQ) * 100);
-  document.getElementById('q-num-badge').textContent = `QUESTION ${num}`;
-  document.getElementById('q-text').textContent = q.text;
-  document.getElementById('q-counter').textContent = `Q${num} / ${STATE.maxQ}`;
-  document.getElementById('progress-fill').style.width = pct + '%';
-  document.getElementById('candidates-count').textContent = STATE.candidates.length;
+// ── Decision: Guess or Continue ─────────────────────────
+function shouldGuess(){
+  const best = bestCand();
+  const n = STATE.candidates.length;
+  const dominates = best.prob;
 
-  // Hint
+  if(dominates >= 0.92) return true;          // Very high confidence
+  if(dominates >= 0.80 && STATE.qIdx >= 5) return true;
+  if(dominates >= 0.70 && STATE.qIdx >= 8) return true;
+  if(dominates >= 0.60 && STATE.qIdx >= 12) return true;
+  if(STATE.qIdx >= STATE.maxQ) return true;   // Forced guess
+  if(n <= 1) return true;                      // Only 1 candidate
+  if(n === 2 && STATE.qIdx >= 10) return true;
+  return false;
+}
+
+// ── Next Question ────────────────────────────────────────
+function nextQ(){
+  // Check if we have candidates
+  if(!STATE.candidates.length){ showS('s-reveal'); return; }
+  if(shouldGuess()){
+    const best = bestCand();
+    doGuess(best.place, calcConf(best.prob));
+    return;
+  }
+  const q = pickBestQ();
+  if(!q){ const b=bestCand(); doGuess(b.place,calcConf(b.prob)); return; }
+  STATE.asked.push(q.id);
+  renderQ(q);
+}
+
+// ── Render Question ──────────────────────────────────────
+function renderQ(q){
+  const num = STATE.qIdx + 1;
+  document.getElementById('q-badge').textContent = `QUESTION ${num}`;
+  document.getElementById('q-text').textContent   = q.text;
+  document.getElementById('prog-num').textContent  = `Q${num} / ${STATE.maxQ}`;
+  document.getElementById('prog-fill').style.width = Math.round(num/STATE.maxQ*100)+'%';
+
+  // Candidates bar
+  const top = bestCand();
+  const sorted = [...STATE.candidates].sort((a,b)=>b.prob-a.prob);
+  const activeCands = sorted.filter(c=>c.prob > 0.005).length;
+  document.getElementById('cand-num').textContent = activeCands;
+  document.getElementById('cand-fill').style.width = Math.round(activeCands/STATE.totalPlaces*100)+'%';
+
+  // Hints
   const hints = {
-    isManmade: 'Anything built or created by people counts.',
-    isNatural: 'Rivers, mountains, forests, natural phenomena...',
-    isAncient: 'Over 500 years old.',
-    isInAsia: 'Includes Middle East, South Asia, East Asia...',
-    isHeritage: 'Listed as UNESCO World Heritage Site.',
-    isUnderWater: 'Partially or fully underwater — like a reef.',
-    isTall: 'Tower, skyscraper, or very high structure.',
+    isManmade:'Think: built by humans — buildings, walls, towers, dams…',
+    isNatural:'Formed without human construction — rivers, mountains, forests…',
+    isAncient:'Created or formed more than 500 years ago.',
+    isModern:'Built or established in the last 200 years.',
+    isInAsia:'Includes East Asia, South Asia, Southeast Asia, Central Asia and Middle East.',
+    isInEurope:'Any country within the European continent.',
+    isInAfrica:'Any country within the African continent.',
+    isInAmericas:'North America, Central America, South America or the Caribbean.',
+    isInOceania:'Australia, New Zealand, Pacific islands.',
+    isHeritage:'Officially listed as a UNESCO World Heritage Site.',
+    isUnderWater:'Fully or partially submerged — coral reefs, sunken places…',
+    isTall:'A structure notably taller than surrounding terrain — towers, skyscrapers, very tall cliffs.',
+    isOnIsland:'Surrounded by water on all sides — an actual island.',
+    isInMiddleEast:'Countries like UAE, Jordan, Egypt, Saudi Arabia, Israel, Iran…',
+    isCold:'Experiences snow, ice or arctic/subarctic conditions regularly.',
+    isWarm:'Tropical or subtropical warm climate year-round.',
+    isVolcano:'An active, dormant or extinct volcanic landform.',
   };
   document.getElementById('q-hint').textContent = hints[q.attribute] || '';
 }
 
-function updateHeader() {
-  document.getElementById('hdr-games').textContent = STATE.gamesPlayed;
-  document.getElementById('hdr-wins').textContent = STATE.gamesWon;
-}
-
 // ── Answer Handler ───────────────────────────────────────
-function answer(ans) {
-  const qId = STATE.asked[STATE.asked.length - 1];
-  const q = STATE.questions.find(q => q.id === qId);
-  if (!q) return;
-
+function answer(ans){
+  const qId = STATE.asked[STATE.asked.length-1];
+  const q   = STATE.questions.find(q=>q.id===qId);
+  if(!q) return;
   STATE.answers[qId] = ans;
-  applyAnswer(q, ans);
-
-  // Add to history
-  addHistory(q.text, ans);
-  STATE.qIndex++;
-  nextQuestion();
+  bayesUpdate(q, ans);
+  addHist(q.text, ans);
+  STATE.qIdx++;
+  nextQ();
 }
 
-function addHistory(text, ans) {
-  const list = document.getElementById('history-list');
-  const item = document.createElement('div');
-  item.className = `history-item ${ans}`;
-  const label = ans === 'yes' ? '✅ YES' : ans === 'no' ? '❌ NO' : '🤔 MAYBE';
-  const cls = ans === 'yes' ? 'badge-yes' : ans === 'no' ? 'badge-no' : 'badge-maybe';
-  item.innerHTML = `<span class="history-q">${text}</span><span class="history-badge ${cls}">${label}</span>`;
-  list.insertBefore(item, list.firstChild);
-  document.getElementById('history-card').style.display = 'block';
+// ── History ──────────────────────────────────────────────
+function addHist(text, ans){
+  const list = document.getElementById('hist-list');
+  const labels = {yes:'✅ YES', prob:'🟢 PROBABLY', dk:'🤔 IDK', probnot:'🟠 PROB. NOT', no:'❌ NO'};
+  const cls    = {yes:'b-yes', prob:'b-prob', dk:'b-dk', probnot:'b-probnot', no:'b-no'};
+  const row = document.createElement('div');
+  row.className = `hi hi-${ans}`;
+  row.innerHTML = `<span class="hi-q">${text}</span><span class="hi-badge ${cls[ans]}">${labels[ans]}</span>`;
+  list.insertBefore(row, list.firstChild);
+  document.getElementById('hist-card').style.display = 'block';
 }
 
-// ── Guess Screen ─────────────────────────────────────────
-function makeGuess(place, conf) {
-  STATE.currentGuess = { place, conf };
+// ── Make Guess ───────────────────────────────────────────
+function doGuess(place, conf){
+  STATE.guess = {place, conf};
+  document.getElementById('g-name').textContent = place.name;
+  document.getElementById('g-loc').textContent  = `${place.country} · ${place.continent}`;
+  document.getElementById('g-pct').textContent  = conf+'%';
+  document.getElementById('g-conf-fill').style.width = conf+'%';
+  // Copy history
+  document.getElementById('g-hist').innerHTML = document.getElementById('hist-list').innerHTML;
+  showS('s-guess');
+}
 
-  document.getElementById('guess-name').textContent = place.name;
-  document.getElementById('guess-country').textContent = `${place.country} · ${place.continent}`;
+function correctGuess(){
+  STATE.wins++; STATE.streak++;
+  updateHdr();
+  const {place, conf} = STATE.guess;
+  document.getElementById('win-pname').textContent = place.name;
+  document.getElementById('st-q').textContent = STATE.qIdx;
+  document.getElementById('st-c').textContent = conf+'%';
+  document.getElementById('st-s').textContent = STATE.streak;
+  document.getElementById('win-gfx').textContent = STATE.qIdx<=5?'🧠':STATE.qIdx<=10?'🎉':'😅';
+  spawnParticles();
+  showS('s-win');
+}
 
-  // Confidence dots
-  const dots = document.getElementById('conf-dots');
-  dots.innerHTML = '';
-  const dotCount = 5;
-  const active = Math.round((conf / 100) * dotCount);
-  for (let i = 0; i < dotCount; i++) {
-    const d = document.createElement('div');
-    d.className = 'conf-dot' + (i < active ? ' active' : '');
-    dots.appendChild(d);
+function wrongGuess(){
+  // Bayesian: set this place's probability near zero and renormalize
+  const {place} = STATE.guess;
+  STATE.candidates = STATE.candidates.map(c=>
+    c.place.id===place.id ? {...c, prob:0.0001} : c
+  );
+  normalize();
+  showToast("Hmm, let me reconsider… 🤔");
+  showS('s-game');
+  setTimeout(()=>{ const b=bestCand(); doGuess(b.place,calcConf(b.prob)); }, 700);
+}
+
+function resetGame(){ STATE.streak=0; updateHdr(); showS('s-welcome'); }
+
+// ── Particles (win) ──────────────────────────────────────
+function spawnParticles(){
+  const wrap = document.getElementById('particles');
+  wrap.innerHTML='';
+  const colors=['#7c6fff','#f472b6','#4ade80','#fb923c','#38bdf8','#eab308'];
+  for(let i=0;i<22;i++){
+    const p=document.createElement('div');
+    p.className='p';
+    p.style.cssText=`left:${Math.random()*100}%;background:${colors[i%colors.length]};
+      width:${4+Math.random()*6}px;height:${4+Math.random()*6}px;
+      animation-duration:${2+Math.random()*3}s;animation-delay:${Math.random()*.8}s`;
+    wrap.appendChild(p);
   }
-  document.getElementById('conf-pct').textContent = conf + '%';
-
-  // Copy history to guess screen
-  const gh = document.getElementById('guess-history');
-  gh.innerHTML = document.getElementById('history-list').innerHTML;
-
-  showScreen('screen-guess');
-}
-
-function correctGuess() {
-  STATE.gamesWon++;
-  updateHeader();
-  const { place, conf } = STATE.currentGuess;
-
-  document.getElementById('win-place').textContent = place.name;
-  document.getElementById('stat-questions').textContent = STATE.qIndex;
-  document.getElementById('stat-conf').textContent = conf + '%';
-  document.getElementById('stat-total').textContent = STATE.gamesPlayed;
-
-  // Win emoji based on performance
-  const emoji = STATE.qIndex <= 5 ? '🧠' : STATE.qIndex <= 10 ? '🎉' : '😅';
-  document.getElementById('win-emoji').textContent = emoji;
-
-  // Summary of key answers
-  const rows = document.getElementById('win-summary-rows');
-  rows.innerHTML = '';
-  const ansEntries = Object.entries(STATE.answers).slice(0, 6);
-  for (const [qId, ans] of ansEntries) {
-    const q = STATE.questions.find(q => q.id === parseInt(qId));
-    if (!q) continue;
-    const row = document.createElement('div');
-    row.className = 'as-row';
-    const color = ans === 'yes' ? '#22c55e' : ans === 'no' ? '#ef4444' : '#eab308';
-    row.innerHTML = `<div class="as-dot" style="background:${color}"></div><div class="as-q">${q.text}</div>`;
-    rows.appendChild(row);
-  }
-
-  showScreen('screen-win');
-}
-
-function wrongGuess() {
-  // Remove wrong guess from candidates and keep going
-  STATE.candidates = STATE.candidates.filter(p => p.id !== STATE.currentGuess.place.id);
-  if (!STATE.candidates.length || STATE.qIndex >= STATE.maxQ) {
-    showScreen('screen-reveal');
-    return;
-  }
-  showToast("Let me think again... 🤔");
-  showScreen('screen-game');
-  const best = bestCandidate();
-  setTimeout(() => makeGuess(best.place, best.conf), 600);
+  setTimeout(()=>wrap.innerHTML='',6000);
 }
 
 // ── Reveal Screen ────────────────────────────────────────
-function onRevealInput() {
-  const val = document.getElementById('reveal-input').value.toLowerCase();
-  const wrap = document.getElementById('reveal-suggestions');
-  wrap.innerHTML = '';
-  if (!val) return;
-  const matches = STATE.places.filter(p =>
-    p.name.toLowerCase().includes(val) || p.country.toLowerCase().includes(val)
-  ).slice(0, 6);
-  matches.forEach(p => {
-    const chip = document.createElement('div');
-    chip.className = 'chip';
-    chip.textContent = p.name;
-    chip.onclick = () => {
-      document.getElementById('reveal-input').value = p.name;
-      wrap.innerHTML = '';
-    };
-    wrap.appendChild(chip);
+function onReveal(){
+  const val = document.getElementById('reveal-in').value.toLowerCase();
+  const wrap = document.getElementById('reveal-chips');
+  wrap.innerHTML='';
+  if(!val) return;
+  const matches = STATE.places.filter(p=>
+    p.name.toLowerCase().includes(val)||p.country.toLowerCase().includes(val)
+  ).slice(0,5);
+  matches.forEach(p=>{
+    const c=document.createElement('div');
+    c.className='chip'; c.textContent=p.name;
+    c.onclick=()=>{ document.getElementById('reveal-in').value=p.name; wrap.innerHTML=''; };
+    wrap.appendChild(c);
   });
 }
 
-function revealPlace() {
-  const val = document.getElementById('reveal-input').value.trim();
-  if (!val) { showToast('Please enter the place name!'); return; }
-  showToast(`Thanks! We'll learn "${val}" for future updates 🌍`);
-  setTimeout(resetGame, 2000);
+function doReveal(){
+  const val=document.getElementById('reveal-in').value.trim();
+  if(!val){ showToast('Please enter the place name!'); return; }
+  showToast(`Thanks! "${val}" will be added in future updates 🌍`);
+  setTimeout(resetGame,2200);
 }
 
-// ── Reset ────────────────────────────────────────────────
-function resetGame() {
-  showScreen('screen-welcome');
+// ── Header ───────────────────────────────────────────────
+function updateHdr(){
+  document.getElementById('hdr-g').textContent = STATE.games;
+  document.getElementById('hdr-w').textContent = STATE.wins;
+  document.getElementById('hdr-s').textContent = STATE.streak;
 }
 
-// ── Toast ────────────────────────────────────────────────
-let toastTimer;
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+// ── Toast ─────────────────────────────────────────────────
+let _tt;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove('show'),3200);
 }
 
-// ── Init ─────────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', () => {
-  loadData();
-});
+// ── Init ──────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', loadData);
 </script>
 </body>
 </html>
