@@ -3,7 +3,8 @@
 > An Akinator-style AI place guessing game. Think of any famous place — we'll guess it!
 
 [![Version](https://img.shields.io/badge/version-1.0.0-6c63ff?style=flat-square)](CHANGELOG.md)
-[![License](https://img.shields.io/badge/license-GPL-v3-4ade80?style=flat-square)](LICENSE)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
 [![Status](https://img.shields.io/badge/status-prototype-f472b6?style=flat-square)]()
 
 ---
